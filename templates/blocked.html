@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛔ Truy Cập Bị Chặn — Proxy Server</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(255, 50, 80, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(200, 30, 60, 0.06) 0%, transparent 50%);
+            animation: bgPulse 8s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(3deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 60px 50px;
+            max-width: 560px;
+            background: rgba(20, 20, 35, 0.85);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 60, 90, 0.15);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5),
+                        0 0 80px rgba(255, 50, 80, 0.05);
+        }
+
+        .shield-icon {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 28px;
+            background: linear-gradient(135deg, #ff3c5a, #c0192e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            box-shadow: 0 8px 30px rgba(255, 60, 90, 0.3);
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 30px rgba(255, 60, 90, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(255, 60, 90, 0.45); }
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: #ff4d6a;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: #9a9ab0;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .domain-box {
+            background: rgba(255, 60, 90, 0.08);
+            border: 1px solid rgba(255, 60, 90, 0.2);
+            border-radius: 12px;
+            padding: 18px 24px;
+            margin-bottom: 28px;
+        }
+
+        .domain-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #7a7a94;
+            margin-bottom: 8px;
+        }
+
+        .domain-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ff6b82;
+            word-break: break-all;
+        }
+
+        .reason-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(255, 60, 90, 0.12);
+            border: 1px solid rgba(255, 60, 90, 0.25);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ff8fa0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: #6a6a82;
+            line-height: 1.7;
+        }
+
+        .footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 11px;
+            color: #4a4a62;
+        }
+
+        .footer span {
+            color: #ff4d6a;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="shield-icon">🛡️</div>
+        <h1>Truy Cập Bị Chặn</h1>
+        <p class="subtitle">
+            Trang web bạn đang cố truy cập đã bị chặn bởi<br>
+            hệ thống quản trị mạng Proxy Server.
+        </p>
+        <div class="domain-box">
+            <div class="domain-label">Tên miền bị chặn</div>
+            <div class="domain-name">{{DOMAIN}}</div>
+        </div>
+        <div class="reason-badge">{{REASON}}</div>
+        <p class="info-text">
+            Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ<br>
+            quản trị viên mạng để được hỗ trợ.
+        </p>
+        <div class="footer">
+            Được bảo vệ bởi <span>Custom Proxy Server</span> · HTTP 403 Forbidden
+        </div>
+    </div>
+</body>
+</html>

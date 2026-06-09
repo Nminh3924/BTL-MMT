@@ -1,0 +1,37 @@
+# ──────────────────────────────────────────────
+# ADLIST — Danh sách host quảng cáo bị chặn
+# Proxy sẽ chặn mọi request tải tài nguyên từ các host này,
+# giúp trang web tải nhanh hơn và không hiển thị quảng cáo.
+# ──────────────────────────────────────────────
+
+# Google Ads
+ads.google.com
+pagead2.googlesyndication.com
+googleadservices.com
+adservice.google.com
+
+# DoubleClick (Google)
+doubleclick.net
+ad.doubleclick.net
+stats.g.doubleclick.net
+
+# Facebook Tracking / Ads
+connect.facebook.net
+pixel.facebook.com
+
+# Các mạng quảng cáo phổ biến
+adnxs.com
+adsrvr.org
+advertising.com
+rubiconproject.com
+pubmatic.com
+openx.net
+casalemedia.com
+criteo.com
+outbrain.com
+taboola.com
+moatads.com
+
+# Analytics & Tracking (tùy chọn)
+# google-analytics.com
+# analytics.google.com

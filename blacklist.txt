@@ -1,0 +1,21 @@
+# ──────────────────────────────────────────────
+# BLACKLIST — Danh sách tên miền bị chặn
+# Mỗi dòng 1 domain. Subdomain tự động bị chặn theo.
+# Ví dụ: "facebook.com" sẽ chặn cả "m.facebook.com"
+# Dòng bắt đầu bằng # là comment, bị bỏ qua.
+# ──────────────────────────────────────────────
+
+# Mạng xã hội
+facebook.com
+tiktok.com
+twitter.com
+instagram.com
+
+# Trang web trò chơi
+miniclip.com
+poki.com
+crazygames.com
+
+# Nội dung không phù hợp (ví dụ minh họa)
+# malware-example.com
+# phishing-example.com

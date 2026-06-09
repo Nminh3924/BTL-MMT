@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <span class="logo">🌐</span>
+            <div><h1>Proxy Dashboard</h1><p class="header-subtitle">Real-time Monitoring</p></div>
+        </div>
+        <div class="header-right">
+            <span class="status-dot"></span><span class="status-text">Live</span>
+            <button class="btn btn-secondary" onclick="clearCache()">🗑️ Xóa Cache</button>
+            <button class="btn btn-secondary" onclick="reloadFilter()">🔄 Reload Filter</button>
+        </div>
+    </header>
+
+    <section class="control-panel">
+        <div class="control-card">
+            <div class="control-header">
+                <span class="control-icon">⏳</span>
+                <h3>Giới Hạn Băng Thông Download (Traffic Shaping)</h3>
+            </div>
+            <div class="control-body">
+                <select id="bandwidthLimitSelect" onchange="updateSettings()" class="control-select">
+                    <option value="0">Không giới hạn (Unlimited)</option>
+                    <option value="10240">10 KB/s (Rất chậm - Slow)</option>
+                    <option value="51200">50 KB/s (Chậm)</option>
+                    <option value="102400">100 KB/s (Trung bình)</option>
+                    <option value="512000">500 KB/s (Nhanh)</option>
+                    <option value="1048576">1 MB/s (Rất nhanh)</option>
+                </select>
+                <span class="control-desc">Giới hạn tốc độ tải xuống cho từng luồng kết nối client.</span>
+            </div>
+        </div>
+        <div class="control-card">
+            <div class="control-header">
+                <span class="control-icon">🔌</span>
+                <h3>Giả Lập Lỗi Cổng Mạng Chính (Failover Simulation)</h3>
+            </div>
+            <div class="control-body">
+                <label class="switch-container">
+                    <input type="checkbox" id="simulateFailoverCheckbox" onchange="updateSettings()">
+                    <span class="switch-slider"></span>
+                    <span class="switch-text">Kích hoạt Giả Lập Lỗi</span>
+                </label>
+                <span class="control-desc">Khi bật, Proxy sẽ bỏ qua Primary Interface và tự động chuyển hướng qua Backup Interface để demo cơ chế Failover.</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats-grid">
+        <div class="stat-card"><div class="stat-icon si-purple">📡</div><div class="stat-info"><div class="stat-value" id="totalRequests">0</div><div class="stat-label">Tổng Request</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-green">💾</div><div class="stat-info"><div class="stat-value" id="cacheHitRate">0%</div><div class="stat-label">Cache Hit Rate</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-pink">📦</div><div class="stat-info"><div class="stat-value" id="bytesSaved">0 B</div><div class="stat-label">Bandwidth Tiết Kiệm</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-red">⛔</div><div class="stat-info"><div class="stat-value" id="totalBlocked">0</div><div class="stat-label">Đã Chặn</div></div></div>
+    </section>
+
+    <section class="charts-row">
+        <div class="card chart-card"><div class="card-header"><h2>📊 Tỷ Lệ Cache</h2></div><div class="chart-container"><canvas id="cacheChart"></canvas></div>
+            <div class="chart-legend"><div class="legend-item"><span class="legend-dot lg-green"></span>Hit: <strong id="cacheHitsCount">0</strong></div><div class="legend-item"><span class="legend-dot lg-red"></span>Miss: <strong id="cacheMissesCount">0</strong></div></div>
+        </div>
+        <div class="card"><div class="card-header"><h2>🏆 Top Domains</h2></div><div class="top-domains-list" id="topDomains"><div class="empty-state">Chưa có dữ liệu</div></div></div>
+        <div class="card chart-card"><div class="card-header"><h2>📋 HTTP Methods</h2></div><div class="chart-container"><canvas id="methodsChart"></canvas></div></div>
+    </section>
+
+    <section class="card log-section">
+        <div class="card-header"><h2>📜 Lịch Sử Request</h2><span class="badge" id="logCount">0</span></div>
+        <div class="table-container">
+            <table class="log-table"><thead><tr><th>Thời gian</th><th>Method</th><th>URL</th><th>Status</th><th>Cache</th><th>Size</th><th>Interface</th><th>Time</th></tr></thead>
+                <tbody id="logTableBody"><tr><td colspan="8" class="empty-state">Chưa có request</td></tr></tbody>
+            </table>
+        </div>
+    </section>
+    <footer class="footer">Custom Web Proxy Server — Đồ Án Mạng Máy Tính · Auto-refresh 3s</footer>
+<script>
+const cacheChart = new Chart(document.getElementById('cacheChart'), {
+    type:'doughnut', data:{labels:['Hit','Miss'],datasets:[{data:[0,0],backgroundColor:['#38ef7d','#ff416c'],borderWidth:0,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}}
+});
+const methodsChart = new Chart(document.getElementById('methodsChart'), {
+    type:'bar', data:{labels:[],datasets:[{data:[],backgroundColor:['rgba(102,126,234,0.7)','rgba(17,153,142,0.7)','rgba(255,65,108,0.7)','rgba(238,156,167,0.7)'],borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{color:'#8888aa'},grid:{color:'rgba(255,255,255,0.04)'}},x:{ticks:{color:'#8888aa'},grid:{display:false}}}}
+});
+function fmtB(b){if(!b)return'0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return(b/Math.pow(k,i)).toFixed(1)+' '+s[i];}
+function stsCls(c){if(c>=200&&c<300)return'status-2xx';if(c>=300&&c<400)return'status-3xx';if(c>=400&&c<500)return'status-4xx';return'status-5xx';}
+function cacheCls(s){return{HIT:'cache-hit',MISS:'cache-miss',BLOCKED:'cache-blocked',TUNNEL:'cache-tunnel'}[s]||'cache-other';}
+function ifaceCls(i){return i === 'Primary Connection' || i === 'Default' ? 'iface-primary' : (i === 'Cache' ? 'iface-cache' : 'iface-backup');}
+async function fetchStats(){try{const r=await fetch('/api/stats'),d=await r.json();
+    document.getElementById('totalRequests').textContent=d.total_requests||0;
+    document.getElementById('cacheHitRate').textContent=(d.cache_hit_rate||0)+'%';
+    document.getElementById('bytesSaved').textContent=d.bytes_saved_formatted||'0 B';
+    document.getElementById('totalBlocked').textContent=d.total_blocked||0;
+    cacheChart.data.datasets[0].data=[d.cache_hits||0,d.cache_misses||0];cacheChart.update('none');
+    document.getElementById('cacheHitsCount').textContent=d.cache_hits||0;
+    document.getElementById('cacheMissesCount').textContent=d.cache_misses||0;
+    const m=d.methods||{};methodsChart.data.labels=Object.keys(m);methodsChart.data.datasets[0].data=Object.values(m);methodsChart.update('none');
+    const td=d.top_domains||[],c=document.getElementById('topDomains');
+    if(!td.length){c.innerHTML='<div class="empty-state">Chưa có</div>';}
+    else{const mx=td[0][1];c.innerHTML=td.map(([dm,ct],i)=>`<div class="domain-row"><span class="domain-rank">#${i+1}</span><span class="domain-name-d">${dm}</span><div class="domain-bar-bg"><div class="domain-bar" style="width:${mx?ct/mx*100:0}%"></div></div><span class="domain-count">${ct}</span></div>`).join('');}
+}catch(e){}}
+async function fetchLogs(){try{const r=await fetch('/api/logs'),l=await r.json();
+    document.getElementById('logCount').textContent=l.length+' entries';
+    const tb=document.getElementById('logTableBody');
+    if(!l.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">Chưa có</td></tr>';return;}
+    tb.innerHTML=l.slice(0,50).map(g=>{const u=g.url&&g.url.length>55?g.url.substring(0,52)+'...':g.url||'';
+    const ifaceLabel = g.outgoing_interface || 'Default';
+    return`<tr><td class="col-time">${g.datetime||''}</td><td><span class="method-badge method-${(g.method||'').toLowerCase()}">${g.method||''}</span></td><td class="col-url" title="${g.url||''}">${u}</td><td><span class="status-badge ${stsCls(g.status_code)}">${g.status_code||''}</span></td><td><span class="cache-badge ${cacheCls(g.cache_status)}">${g.cache_status||''}</span></td><td class="col-size">${fmtB(g.response_size)}</td><td><span class="interface-badge ${ifaceCls(ifaceLabel)}">${ifaceLabel}</span></td><td class="col-time">${(g.response_time_ms||0).toFixed(0)}ms</td></tr>`;}).join('');
+}catch(e){}}
+async function fetchSettings(){try{const r=await fetch('/api/settings'),s=await r.json();
+    document.getElementById('bandwidthLimitSelect').value=s.bandwidth_limit||0;
+    document.getElementById('simulateFailoverCheckbox').checked=s.simulate_failover||false;
+}catch(e){}}
+async function updateSettings(){
+    const limit=parseInt(document.getElementById('bandwidthLimitSelect').value);
+    const failover=document.getElementById('simulateFailoverCheckbox').checked;
+    try{await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bandwidth_limit:limit,simulate_failover:failover})});}catch(e){}
+}
+async function clearCache(){if(!confirm('Xóa toàn bộ cache?'))return;await fetch('/api/cache/clear',{method:'POST'});fetchStats();}
+async function reloadFilter(){await fetch('/api/filter/reload',{method:'POST'});alert('Đã reload!');}
+function refresh(){fetchStats();fetchLogs();}
+fetchSettings();
+refresh();
+setInterval(refresh,3000);
+</script>
+</body>
+</html>

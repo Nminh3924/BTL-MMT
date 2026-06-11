@@ -1,0 +1,20 @@
+{
+  "url": "http://info.cern.ch/favicon.ico",
+  "hash": "067aa1164ff3f6bd2bb736856d6ec883",
+  "created_at": 1781158034.5110052,
+  "last_accessed": 1781158047.728383,
+  "ttl": 3600,
+  "size": 1654,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 06:07:13 GMT",
+    "server": "Apache",
+    "last-modified": "Fri, 18 Jan 2008 15:26:11 GMT",
+    "etag": "\"57e-44400c31d2ac0\"",
+    "accept-ranges": "bytes",
+    "content-length": "1406",
+    "connection": "close",
+    "content-type": "image/vnd.microsoft.icon"
+  },
+  "last_modified": "Fri, 18 Jan 2008 15:26:11 GMT",
+  "etag": "\"57e-44400c31d2ac0\""
+}

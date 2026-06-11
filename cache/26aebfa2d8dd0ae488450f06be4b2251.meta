@@ -1,0 +1,17 @@
+{
+  "url": "http://www.msftncsi.com/connecttest.txt",
+  "hash": "26aebfa2d8dd0ae488450f06be4b2251",
+  "created_at": 1781157712.43984,
+  "last_accessed": 1781157712.43984,
+  "ttl": 30,
+  "size": 187,
+  "headers": {
+    "content-length": "22",
+    "date": "Thu, 11 Jun 2026 06:01:51 GMT",
+    "connection": "close",
+    "content-type": "text/plain",
+    "cache-control": "max-age=30, must-revalidate"
+  },
+  "last_modified": "",
+  "etag": ""
+}

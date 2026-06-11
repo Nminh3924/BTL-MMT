@@ -1,0 +1,17 @@
+{
+  "url": "http://www.msftconnecttest.com/connecttest.txt",
+  "hash": "b948fb48fd505a3c2b8bf6dde8c10b8f",
+  "created_at": 1781156842.2464054,
+  "last_accessed": 1781156842.2464054,
+  "ttl": 30,
+  "size": 187,
+  "headers": {
+    "content-length": "22",
+    "date": "Thu, 11 Jun 2026 05:47:21 GMT",
+    "connection": "close",
+    "content-type": "text/plain",
+    "cache-control": "max-age=30, must-revalidate"
+  },
+  "last_modified": "",
+  "etag": ""
+}

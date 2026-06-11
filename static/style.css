@@ -434,3 +434,112 @@ body {
     color: #38ef7d;
 }
 
+/* ── Stats Grid: 5 columns ── */
+.stats-grid {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+/* ── Orange stat icon (Rate Limited) ── */
+.si-orange { background: linear-gradient(135deg, #ff9a00, #ff6600); }
+
+/* ── Auth Credentials Form ── */
+.auth-credentials {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.input-label {
+    font-size: 11px;
+    color: #7a7a94;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.control-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    color: #d0d0e0;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.control-input:focus {
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
+/* ── Blue Switch Toggle (Auth) ── */
+.switch-container input:checked + .switch-slider-blue {
+    background-color: #667eea;
+}
+
+.switch-container input:checked + .switch-slider-blue::before {
+    transform: translateX(22px);
+    background-color: #fff;
+}
+
+/* ── Orange Switch Toggle (Offline Cache Fallback) ── */
+.switch-container input:checked + .switch-slider-orange {
+    background-color: #ff9a00;
+}
+
+.switch-container input:checked + .switch-slider-orange::before {
+    transform: translateX(22px);
+    background-color: #fff;
+}
+
+/* ── Rate Limit Info ── */
+.rate-limit-info {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.rl-stat {
+    font-size: 12px;
+    color: #8a8aa8;
+}
+
+.rl-stat strong {
+    color: #ffb347;
+}
+
+/* ── New Cache Badges ── */
+.cache-ratelimited {
+    background: rgba(255, 154, 0, 0.12);
+    color: #ffb347;
+}
+
+.cache-auth {
+    background: rgba(102, 126, 234, 0.12);
+    color: #8ea4f0;
+}
+
+/* ── Responsive override for 5-column stats ── */
+@media (max-width: 1200px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr; }
+}
+

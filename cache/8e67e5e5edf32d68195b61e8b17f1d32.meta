@@ -1,0 +1,19 @@
+{
+  "url": "http://httpbin.org/",
+  "hash": "8e67e5e5edf32d68195b61e8b17f1d32",
+  "created_at": 1781158026.3250287,
+  "last_accessed": 1781158026.3250287,
+  "ttl": 3600,
+  "size": 9832,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 06:07:05 GMT",
+    "content-type": "text/html; charset=utf-8",
+    "content-length": "9593",
+    "connection": "keep-alive",
+    "server": "gunicorn/19.9.0",
+    "access-control-allow-origin": "*",
+    "access-control-allow-credentials": "true"
+  },
+  "last_modified": "",
+  "etag": ""
+}

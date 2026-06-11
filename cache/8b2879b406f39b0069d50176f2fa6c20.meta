@@ -1,0 +1,24 @@
+{
+  "url": "http://httpbin.org/flasgger_static/lib/jquery.min.js",
+  "hash": "8b2879b406f39b0069d50176f2fa6c20",
+  "created_at": 1781158029.1877449,
+  "last_accessed": 1781158029.1877449,
+  "ttl": 43200,
+  "size": 86000,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 06:07:08 GMT",
+    "content-type": "application/javascript",
+    "content-length": "85578",
+    "connection": "keep-alive",
+    "server": "gunicorn/19.9.0",
+    "last-modified": "Tue, 14 Jan 2020 07:34:22 GMT",
+    "cache-control": "public, max-age=43200",
+    "expires": "Thu, 11 Jun 2026 18:07:08 GMT",
+    "etag": "\"1578987262.0-85578-751967236\"",
+    "accept-ranges": "bytes",
+    "access-control-allow-origin": "*",
+    "access-control-allow-credentials": "true"
+  },
+  "last_modified": "Tue, 14 Jan 2020 07:34:22 GMT",
+  "etag": "\"1578987262.0-85578-751967236\""
+}

@@ -47,12 +47,24 @@ LOG_FILE = os.path.join(LOG_DIR, "proxy.log")
 MAX_LOG_ENTRIES = 1000        # Số lượng log entry giữ trong RAM cho dashboard
 
 # ──────────────────────────────────────────────
-# Traffic Shaping & Failover
+# Traffic Shaping & Server Outage Simulation
 # ──────────────────────────────────────────────
 BANDWIDTH_LIMIT = 0           # Giới hạn băng thông (bytes/giây), 0 là không giới hạn
-SIMULATE_FAILOVER = False     # Giả lập lỗi trên cổng mạng chính
-OUTGOING_INTERFACES = [
-    {"name": "Primary Connection", "ip": "0.0.0.0"},
-    {"name": "Backup Connection", "ip": "0.0.0.0"}  # Trong thực tế, đổi thành IP của card thứ 2 (ví dụ: "192.168.1.50")
-]
+SIMULATE_HTTP_ERROR = False      # Bật/tắt giả lập lỗi HTTP phản hồi
+SIMULATE_HTTP_ERROR_CODE = 503   # Mã lỗi giả lập mặc định (403, 404, 500, 503, 504)
+
+
+# ──────────────────────────────────────────────
+# Proxy Authentication (RFC 7235)
+# ──────────────────────────────────────────────
+AUTH_ENABLED = False           # Bật/tắt xác thực proxy
+AUTH_USERNAME = "admin"        # Tên đăng nhập mặc định
+AUTH_PASSWORD = "proxy123"     # Mật khẩu mặc định
+AUTH_REALM = "Custom Proxy Server"  # Tên hiển thị trên dialog đăng nhập trình duyệt
+
+# ──────────────────────────────────────────────
+# Rate Limiting (RFC 6585 — Chống DDoS)
+# ──────────────────────────────────────────────
+RATE_LIMIT_MAX_REQUESTS = 0    # Số request tối đa mỗi IP trong cửa sổ thời gian, 0 = tắt
+RATE_LIMIT_WINDOW = 60         # Cửa sổ thời gian (giây), mặc định 60 giây
 

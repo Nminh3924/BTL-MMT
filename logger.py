@@ -33,6 +33,7 @@ class ProxyLogger:
             "domains": {},             # {"example.com": 15, ...}
             "cache_hits": 0,
             "cache_misses": 0,
+            "total_rate_limited": 0,
         }
 
         # Tạo thư mục log
@@ -78,13 +79,15 @@ class ProxyLogger:
             self._stats["domains"][hostname] = self._stats["domains"].get(hostname, 0) + 1
 
             cache_status = entry.get("cache_status", "")
-            if cache_status == "HIT":
+            if cache_status in ("HIT", "OFFLINE_CACHE"):
                 self._stats["cache_hits"] += 1
                 self._stats["total_bytes_saved"] += entry.get("response_size", 0)
             elif cache_status == "MISS":
                 self._stats["cache_misses"] += 1
             elif cache_status == "BLOCKED":
                 self._stats["total_blocked"] += 1
+            elif cache_status == "RATE_LIMITED":
+                self._stats["total_rate_limited"] += 1
 
             self._stats["total_bytes_served"] += entry.get("response_size", 0)
 
@@ -141,6 +144,10 @@ class ProxyLogger:
             "TUNNEL": "🔒 TUNNEL    ",
             "BYPASS": "⏩ BYPASS    ",
             "ERROR": "❌ ERROR     ",
+            "RATE_LIMITED": "⏱️  RATE LIMIT",
+            "AUTH_REQUIRED": "🔐 AUTH REQ  ",
+            "OFFLINE_CACHE": "💾 OFFLINE CACHE",
+            "SIMULATED": "⚠️ SIMULATED  ",
         }.get(cache_status, "   ???       ")
 
         # Rút gọn URL nếu quá dài

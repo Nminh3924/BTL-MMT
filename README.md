@@ -184,35 +184,60 @@ BTL-MMT/
 ├── cache_manager.py      # Quản lý hoạt động đọc/ghi Cache, kiểm tra TTL, thực hiện thuật toán LRU Eviction
 ├── web_filter.py         # Xử lý kiểm tra blacklist/adlist, subdomain matching và tạo trang 403 Forbidden
 ├── logger.py             # Ghi nhật ký hoạt động mạng ra file logs/proxy.log và tính toán số liệu thống kê
-├── dashboard.py          # Khởi động Flask Web App cung cấp các API giám sát thời gian thực
-├── blacklist.txt         # Lưu trữ danh sách các domain bị chặn truy cập
-├── adlist.txt            # Lưu trữ danh sách host quảng cáo bị chặn
-├── cache/                # Thư mục chứa các file đệm (*.data và *.meta) lưu trữ trên đĩa
-├── logs/                 # Thư mục chứa file log hoạt động của Proxy
-├── static/
-│   └── style.css         # CSS giao diện Dashboard (Dark mode, modern UI)
-└── templates/
-    ├── dashboard.html    # Giao diện chính của bảng quản trị Dashboard
-    └── blocked.html      # Giao diện trang thông báo 403 Forbidden khi người dùng truy cập trang bị cấm
-```
+├── dashboard.py          # Khởi động Flask ### 2. Cấu Hình Hệ Thống (`config.py`)
+Mở file `config.py` để thay đổi các tham số hoạt động chính của Proxy:
+*   `PROXY_PORT`: Cổng Proxy lắng nghe (Mặc định: `8888`).
+*   `MAX_CACHE_SIZE`: Giới hạn bộ nhớ đệm tối đa (Mặc định: `500MB`).
+*   `CACHE_DEFAULT_TTL`: Thời gian sống mặc định của cache nếu server không chỉ định (Mặc định: `3600` giây).
+*   `BANDWIDTH_LIMIT`: Tốc độ giới hạn tải xuống (Mặc định: `0` - Không giới hạn). Có thể chỉnh sang các mức khác như `51200` (50 KB/s) để test.
+*   `SIMULATE_WEBSITE_OUTAGE`: Bật/tắt giả lập lỗi máy chủ gốc ngoại tuyến để demo bộ nhớ đệm offline.
 
 ---
 
-## 🎓 Hệ Thống Hóa Kiến Thức Mạng Máy Tính Áp Dụng
+## 🎬 Kịch Bản Demo & Hướng Dẫn Kiểm Thử
 
-Dự án này là cơ hội thực hành kinh điển để sinh viên hiểu sâu sắc các kiến thức lý thuyết mạng:
+Để trình diễn đồ án một cách ấn tượng trước hội đồng giám khảo, bạn hãy thực hiện theo kịch bản sau:
 
-### 1. Lập Trình Socket TCP (Tầng Giao Vận)
-*   **TCP Server & Client:** Proxy Server tự đóng hai vai trò song song. Nó là một **TCP Server** sử dụng `socket.accept()` để lắng nghe trình duyệt kết nối đến. Đồng thời, nó là một **TCP Client** sử dụng `socket.connect()` để bắt tay 3 bước kết nối đến Web Server gốc.
-*   **Đa luồng (Threading Concurrency):** Để tránh việc xử lý một request bị tắc nghẽn làm dừng toàn bộ hệ thống, Proxy sử dụng thư viện `threading` để tạo ra một luồng xử lý độc lập (`daemon thread`) cho mỗi kết nối client.
-*   **Non-blocking & I/O Multiplexing:** Ở cơ chế HTTPS CONNECT Tunneling, để đọc ghi dữ liệu thô song hướng đồng thời mà không bị chặn (blocking socket), Proxy áp dụng hàm `select.select()` giám sát hai chiều luồng dữ liệu thô, nâng cao hiệu năng truyền tải.
+### Bước 1: Khởi động hệ thống
+Mở Terminal/CMD tại thư mục dự án và chạy:
+```bash
+python proxy.py
+```
+Hệ thống sẽ hiển thị giao diện chào mừng, các thông tin cổng lắng nghe, số lượng domain bị chặn, thư mục cache và liên kết truy cập Dashboard.
 
-### 2. Định Dạng Giao Thức HTTP/1.1 (Tầng Ứng Dụng)
-*   **Bóc tách thủ công (Manual Parsing):** Proxy phân tích gói tin HTTP dạng văn bản (text-based) thủ công bằng các phép cắt chuỗi byte (`split`), trích xuất các thông tin từ dòng yêu cầu (Request Line) và các trường Header tiêu chuẩn như `Host`, `Cache-Control`, `Content-Length`, `Connection`, v.v.
-*   **Chuyển đổi gói tin tương thích:** Hiểu rõ sự khác nhau giữa yêu cầu gửi qua Proxy (sử dụng Absolute URL để proxy biết IP đích cần đi tới) và yêu cầu gửi trực tiếp đến origin server (sử dụng Relative URL). Proxy tự động chuyển đổi gói tin để đảm bảo tính hợp lệ.
+### Bước 2: Cấu hình Proxy trên trình duyệt Chrome hoặc Firefox
+*   Mở trình duyệt của bạn (Chrome, Edge hoặc Firefox).
+*   Cài đặt Proxy thủ công trỏ về địa chỉ IP `127.0.0.1` và Port `8888`.
+*   *(Khuyên dùng)* Sử dụng tab ẩn danh (Incognito) để tránh trình duyệt tự động chuyển hướng cache.
 
-### 3. Cơ Chế HTTP Caching (RFC 7234)
-*   **Điều khiển Caching:** Hiện thực hóa các cơ chế trong tài liệu chuẩn RFC 7234, nhận diện các cờ điều hướng bộ nhớ đệm như `max-age`, `no-store` để bảo vệ tính bảo mật thông tin.
+### Bước 3: Demo các tính năng thực tế
+
+#### Kịch bản 1: Duyệt web HTTP thường & Kiểm tra Cache
+1.  Truy cập trang web HTTP thường (Ví dụ: `http://example.com` - gõ rõ `http://`).
+2.  Trang hiển thị bình thường. Trên terminal của Proxy sẽ in ra log `🌐 CACHE MISS` (lần đầu tiên truy cập).
+3.  Tải lại trang (`F5` hoặc nhấn Enter thanh địa chỉ).
+4.  Trang tải tức thì. Trên terminal in ra log `💾 CACHE HIT` và trên Dashboard tỷ lệ Cache Hit Rate tăng lên.
+
+#### Kịch bản 2: Kiểm tra HTTPS CONNECT Tunneling
+1.  Truy cập một trang web mã hóa HTTPS (Ví dụ: `https://google.com` hoặc `https://github.com`).
+2.  Trang hiển thị an toàn. Trên terminal in ra log `🔒 TUNNEL` kết nối đến cổng 443. Dữ liệu được truyền tải bảo mật tuyệt đối.
+
+#### Kịch bản 3: Kiểm tra Web Filter & Chặn quảng cáo
+1.  Truy cập một trang web trong blacklist (Ví dụ: `http://facebook.com` hoặc `http://tiktok.com`).
+2.  Trình duyệt lập tức hiển thị trang cảnh báo **403 Forbidden** do nhóm tự thiết kế. Terminal in ra log `⛔ BLOCKED`.
+
+#### Kịch bản 4: Kiểm tra Xác thực người dùng (Captive Portal)
+1.  Trên Dashboard (`http://localhost:5000`), bật toggle **"Bật Xác Thực Đăng Nhập"**.
+2.  Mở tab mới trên trình duyệt proxy, truy cập `http://neverssl.com`.
+3.  Trình duyệt sẽ tự động chuyển hướng hiển thị trang đăng nhập Captive Portal màu tím bảo mật của bạn.
+4.  Nhập tài khoản `admin` / mật khẩu `proxy123` để đăng nhập thành công và truy cập Internet.
+
+#### Kịch bản 5: Giả lập sập trang web & Offline Cache Fallback
+1.  Đảm bảo bạn đã từng truy cập và cache trang `http://example.com`.
+2.  Trên Dashboard, kích hoạt **"Giả Lập Ngoại Tuyến (Offline)"**.
+3.  Tải lại trang `http://example.com`. Trang web vẫn sẽ hiển thị bình thường (tải từ cache) kèm theo một **banner màu vàng cam cảnh báo lỗi máy chủ gốc** hiển thị ở trên cùng.
+4.  Truy cập một trang chưa từng vào (chưa cache) $\rightarrow$ hiển thị trang lỗi **502 Web Server Offline** màu đỏ.
+�o mật thông tin.
 *   **Conditional GET:** Hiểu rõ cơ chế xác thực dữ liệu đệm bằng cách sử dụng các cặp header `If-Modified-Since` đi kèm `Last-Modified`, và `If-None-Match` đi kèm `ETag`. Đây là cơ chế giảm thiểu tài nguyên mạng cốt lõi của Internet.
 *   **Thuật toán LRU (Least Recently Used):** Ứng dụng cấu trúc dữ liệu và giải thuật trong quản lý tài nguyên phần cứng, tự động thu hồi không gian bộ đệm khi chạm ngưỡng giới hạn.
 

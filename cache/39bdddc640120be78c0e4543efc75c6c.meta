@@ -1,0 +1,23 @@
+{
+  "url": "http://quietlushsilversunset.neverssl.com/",
+  "hash": "39bdddc640120be78c0e4543efc75c6c",
+  "created_at": 1781161056.334082,
+  "last_accessed": 1781161056.334082,
+  "ttl": 3600,
+  "size": 2236,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 06:57:35 GMT",
+    "server": "Apache/2.4.66 ()",
+    "upgrade": "h2,h2c",
+    "connection": "Upgrade, close",
+    "last-modified": "Wed, 29 Jun 2022 00:23:33 GMT",
+    "etag": "\"f79-5e28b29d38e93-gzip\"",
+    "accept-ranges": "bytes",
+    "vary": "Accept-Encoding",
+    "content-encoding": "gzip",
+    "content-length": "1900",
+    "content-type": "text/html; charset=UTF-8"
+  },
+  "last_modified": "Wed, 29 Jun 2022 00:23:33 GMT",
+  "etag": "\"f79-5e28b29d38e93-gzip\""
+}

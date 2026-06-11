@@ -1,0 +1,23 @@
+{
+  "url": "http://example.com/",
+  "hash": "a6bf1757fff057f266b697df9cf176fd",
+  "created_at": 1781151803.5376344,
+  "last_accessed": 1781157951.4971619,
+  "ttl": 3600,
+  "size": 701,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 04:23:18 GMT",
+    "content-type": "text/html",
+    "transfer-encoding": "chunked",
+    "connection": "keep-alive",
+    "server": "cloudflare",
+    "last-modified": "Wed, 10 Jun 2026 20:50:18 GMT",
+    "allow": "GET, HEAD",
+    "cf-cache-status": "HIT",
+    "age": "0",
+    "content-encoding": "gzip",
+    "cf-ray": "a09dd6f1bf7addc7-HKG"
+  },
+  "last_modified": "Wed, 10 Jun 2026 20:50:18 GMT",
+  "etag": ""
+}

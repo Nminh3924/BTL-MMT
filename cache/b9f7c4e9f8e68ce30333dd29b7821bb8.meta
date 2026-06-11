@@ -1,0 +1,25 @@
+{
+  "url": "http://dl.delivery.mp.microsoft.com/filestreamingservice//files/aa4e1b27-a0dc-4a80-8673-6e5f107fca85/pieceshash",
+  "hash": "b9f7c4e9f8e68ce30333dd29b7821bb8",
+  "created_at": 1781149331.4619505,
+  "last_accessed": 1781149351.1863747,
+  "ttl": 17280000,
+  "size": 12684,
+  "headers": {
+    "content-length": "12233",
+    "content-type": "application/octet-stream",
+    "accept-ranges": "bytes",
+    "cache-control": "public, max-age=17280000",
+    "etag": "\"KKAPSnLeWR5VJuVvc44ZmfnN8fs=\"",
+    "last-modified": "Thu, 28 May 2026 13:47:52 GMT",
+    "ms-correlationid": "5592a4b4-ade9-43b3-a0f9-0aadc7a6ce25",
+    "ms-requestid": "05790b0c-614b-472a-a5ef-fb7b88fc5556",
+    "ms-cv": "1l1mLglhqk6GGAf4.1.1.3.2.1.0",
+    "date": "Thu, 11 Jun 2026 03:42:10 GMT",
+    "connection": "close",
+    "x-ccc": "HK",
+    "x-cid": "2"
+  },
+  "last_modified": "Thu, 28 May 2026 13:47:52 GMT",
+  "etag": "\"KKAPSnLeWR5VJuVvc44ZmfnN8fs=\""
+}

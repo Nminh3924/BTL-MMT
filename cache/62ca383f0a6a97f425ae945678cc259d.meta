@@ -1,0 +1,23 @@
+{
+  "url": "http://oneocsp.microsoft.com/ocsp/MFQwUjBQME4wTDAJBgUrDgMCGgUABBQ3L3%2F%2Fa6ADK8NraY2GXzVaYrHG4AQUb6t%2B2v%2BXQ3LsO2d33oJhNYhHQoUCEzMAAAAGb6JMMcOVb6sAAAAAAAY%3D",
+  "hash": "62ca383f0a6a97f425ae945678cc259d",
+  "created_at": 1781149383.8051636,
+  "last_accessed": 1781149383.8051636,
+  "ttl": 86400,
+  "size": 1444,
+  "headers": {
+    "cache-control": "max-age=86400",
+    "content-length": "958",
+    "content-type": "application/ocsp-response",
+    "expires": "Sat, 25 Jul 2026 09:15:01 GMT",
+    "last-modified": "Tue, 09 Jun 2026 00:00:00 GMT",
+    "etag": "\"dab0445aa47c6b614b14f0274b742d66bbd794e7435127c29081ec404844d95e\"",
+    "x-cache": "TCP_HIT",
+    "x-powered-by": "ASP.NET",
+    "x-content-type-options": "nosniff",
+    "x-msedge-ref": "Ref A: 2CACBF02406D41F98469CACEEC7EBA68 Ref B: SGN30EDGE0314 Ref C: 2026-06-11T03:43:03Z",
+    "date": "Thu, 11 Jun 2026 03:43:03 GMT"
+  },
+  "last_modified": "Tue, 09 Jun 2026 00:00:00 GMT",
+  "etag": "\"dab0445aa47c6b614b14f0274b742d66bbd794e7435127c29081ec404844d95e\""
+}

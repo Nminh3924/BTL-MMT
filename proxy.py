@@ -24,6 +24,7 @@ Cách test:
     curl -x http://127.0.0.1:8888 http://example.com -v
 """
 
+import base64
 import os
 import signal
 import socket
@@ -36,6 +37,7 @@ import config
 from web_filter import WebFilter
 from cache_manager import CacheManager
 from logger import ProxyLogger
+from rate_limiter import RateLimiter
 
 
 # ════════════════════════════════════════════════════════
@@ -44,8 +46,10 @@ from logger import ProxyLogger
 web_filter = WebFilter()
 cache_manager = CacheManager()
 proxy_logger = ProxyLogger()
+rate_limiter = RateLimiter()
 server_socket: socket.socket | None = None
 running = True
+authenticated_ips = set()
 
 
 # ════════════════════════════════════════════════════════
@@ -236,36 +240,20 @@ def parse_response_headers(raw_response: bytes) -> tuple[int, dict[str, str], in
 
 def connect_to_origin(hostname: str, port: int) -> tuple[socket.socket, str]:
     """
-    Kết nối tới origin server sử dụng cơ chế failover qua nhiều interface.
-    Nếu config.SIMULATE_FAILOVER = True, ta giả lập lỗi kết nối trên interface đầu tiên.
+    Kết nối tới origin server.
     Trả về (connected_socket, interface_name).
     """
-    last_err = None
-    for i, iface in enumerate(config.OUTGOING_INTERFACES):
-        name = iface["name"]
-        ip = iface["ip"]
-        
-        # Giả lập lỗi ở interface đầu tiên (chỉ khi có ít nhất 2 interface cấu hình)
-        if config.SIMULATE_FAILOVER and i == 0 and len(config.OUTGOING_INTERFACES) > 1:
-            print(f"[Failover] Giả lập lỗi kết nối trên giao diện chính: {name}")
-            last_err = socket.error("Simulated primary interface failure")
-            continue
-            
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(config.SOCKET_TIMEOUT)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(config.SOCKET_TIMEOUT)
+    try:
+        sock.connect((hostname, port))
+        return sock, "Default"
+    except Exception as e:
         try:
-            if ip and ip != "0.0.0.0":
-                sock.bind((ip, 0))
-            sock.connect((hostname, port))
-            return sock, name
-        except Exception as e:
-            print(f"[Failover] Không thể kết nối qua {name} ({ip if ip else 'default'}): {e}")
-            last_err = e
-            try:
-                sock.close()
-            except Exception:
-                pass
-    raise last_err if last_err else socket.error("Tất cả các giao diện mạng đều kết nối thất bại")
+            sock.close()
+        except Exception:
+            pass
+        raise e
 
 
 def send_throttled(client_sock: socket.socket, data: bytes, limit_bytes_per_sec: int):
@@ -387,6 +375,80 @@ def _recv_http_response(server_sock: socket.socket) -> bytes:
     return response_data
 
 
+def serve_offline_fallback(client_socket: socket.socket, url: str, hostname: str, default_status_code: int) -> tuple[int, str, int]:
+    """
+    Phục vụ cache dự phòng (Offline Cache) khi không thể kết nối server gốc.
+    Nếu có cache -> trả về cache kèm banner.
+    Nếu không có -> trả về trang lỗi 502 Offline tự thiết kế.
+    Returns: (status_code, cache_status, response_size)
+    """
+    hit, cached_data, cached_meta = cache_manager.get(url, ignore_ttl=True)
+    if hit and cached_data:
+        try:
+            status_code, resp_headers, body_start = parse_response_headers(cached_data)
+            status_code = status_code if status_code else 200
+            
+            headers_part = cached_data[:body_start]
+            body_part = cached_data[body_start:]
+            
+            is_html = False
+            for k, v in resp_headers.items():
+                if k.lower() == "content-type" and "text/html" in v.lower():
+                    is_html = True
+                    break
+            
+            if is_html:
+                body_str = body_part.decode("utf-8", errors="replace")
+                body_lower = body_str.lower()
+                body_idx = body_lower.find("<body")
+                if body_idx != -1:
+                    tag_close_idx = body_str.find(">", body_idx)
+                    if tag_close_idx != -1:
+                        banner = '<div style="background:linear-gradient(135deg, #ff9a00, #ff6600);color:white;text-align:center;padding:12px;font-family:sans-serif;font-size:14px;font-weight:bold;position:relative;z-index:99999;box-shadow:0 2px 10px rgba(0,0,0,0.3)">⚠️ Máy chủ đang ngoại tuyến. Đây là bản sao lưu (Offline Cache) từ Proxy Server.</div>'
+                        new_body_str = body_str[:tag_close_idx+1] + banner + body_str[tag_close_idx+1:]
+                        new_body_bytes = new_body_str.encode("utf-8")
+                        
+                        # Cập nhật Content-Length header
+                        lines = headers_part.split(b"\r\n")
+                        new_headers_part = b""
+                        for line in lines:
+                            if line.lower().startswith(b"content-length:"):
+                                new_headers_part += f"Content-Length: {len(new_body_bytes)}\r\n".encode("utf-8")
+                            elif line:
+                                new_headers_part += line + b"\r\n"
+                        new_headers_part += b"\r\n"
+                        cached_data = new_headers_part + new_body_bytes
+            
+            send_throttled(client_socket, cached_data, config.BANDWIDTH_LIMIT)
+            return status_code, "OFFLINE_CACHE", len(cached_data)
+        except Exception:
+            pass
+            
+    # Không có cache -> Trả về trang 502 Offline tự thiết kế
+    body_str = f"""<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8"><title>502 Web Server Offline</title>
+<style>body{{font-family:Inter,sans-serif;background:#0f0f1a;color:#e0e0e0;display:flex;align-items:center;
+justify-content:center;min-height:100vh;margin:0}}.box{{text-align:center;padding:50px;background:rgba(20,20,35,0.85);
+border-radius:24px;border:1px solid rgba(239,68,68,0.2);max-width:500px;box-shadow:0 15px 35px rgba(0,0,0,0.5)}}
+.icon{{font-size:64px;margin-bottom:20px}}h1{{color:#ef4444;font-size:24px;margin-bottom:12px}}
+p{{color:#9a9ab0;font-size:14px;line-height:1.6}}</style></head>
+<body><div class="box"><div class="icon">🔌</div><h1>Máy Chủ Ngoại Tuyến</h1>
+<p>Proxy Server không thể kết nối tới trang web <b>{hostname}</b>.<br>Trang web này có thể đang bảo trì hoặc gặp sự cố và không có bản sao lưu nào trong bộ nhớ đệm.</p>
+<p style="margin-top:20px;font-size:11px;color:#4a4a62">HTTP 502 Bad Gateway / Connection Error</p>
+</div></body></html>"""
+    body = body_str.encode("utf-8")
+    header = (
+        "HTTP/1.1 502 Bad Gateway\r\n"
+        "Content-Type: text/html; charset=utf-8\r\n"
+        f"Content-Length: {len(body)}\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+    )
+    response_data = header.encode("utf-8") + body
+    client_socket.sendall(response_data)
+    return 502, "ERROR", len(response_data)
+
+
 def handle_http_request(client_socket: socket.socket, method: str,
                         url: str, hostname: str, port: int,
                         raw_request: bytes, headers: dict, client_ip: str):
@@ -447,10 +509,7 @@ def handle_http_request(client_socket: socket.socket, method: str,
                     cache_status = "MISS"
                 else:
                     # Server không trả response
-                    error_response = b"HTTP/1.1 502 Bad Gateway\r\nContent-Length: 0\r\n\r\n"
-                    client_socket.sendall(error_response)
-                    status_code = 502
-                    cache_status = "ERROR"
+                    status_code, cache_status, response_size = serve_offline_fallback(client_socket, url, hostname, 502)
 
             finally:
                 if server_sock:
@@ -460,29 +519,9 @@ def handle_http_request(client_socket: socket.socket, method: str,
                         pass
 
     except socket.timeout:
-        try:
-            error_response = b"HTTP/1.1 504 Gateway Timeout\r\nContent-Length: 0\r\n\r\n"
-            client_socket.sendall(error_response)
-        except Exception:
-            pass
-        status_code = 504
-        cache_status = "ERROR"
-    except (ConnectionRefusedError, socket.gaierror) as e:
-        try:
-            error_response = b"HTTP/1.1 502 Bad Gateway\r\nContent-Length: 0\r\n\r\n"
-            client_socket.sendall(error_response)
-        except Exception:
-            pass
-        status_code = 502
-        cache_status = "ERROR"
+        status_code, cache_status, response_size = serve_offline_fallback(client_socket, url, hostname, 504)
     except Exception as e:
-        try:
-            error_response = b"HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n"
-            client_socket.sendall(error_response)
-        except Exception:
-            pass
-        status_code = 500
-        cache_status = "ERROR"
+        status_code, cache_status, response_size = serve_offline_fallback(client_socket, url, hostname, 502)
 
     # ──── Ghi Log ────
     elapsed_ms = (time.time() - start_time) * 1000
@@ -521,8 +560,28 @@ def handle_https_tunnel(client_socket: socket.socket, hostname: str,
     server_sock = None
 
     try:
-        # Kết nối đến Web Server gốc sử dụng failover
-        server_sock, out_iface = connect_to_origin(hostname, port)
+        try:
+            # Kết nối đến Web Server gốc
+            server_sock, out_iface = connect_to_origin(hostname, port)
+        except Exception as e:
+            # Gửi phản hồi 502 khi không kết nối được (hoặc giả lập sập)
+            try:
+                client_socket.sendall(b"HTTP/1.1 502 Bad Gateway\r\n\r\n")
+            except Exception:
+                pass
+            proxy_logger.log({
+                "timestamp": time.time(),
+                "client_ip": client_ip,
+                "method": "CONNECT",
+                "url": f"https://{hostname}:{port}",
+                "hostname": hostname,
+                "status_code": 502,
+                "cache_status": "ERROR",
+                "response_size": 0,
+                "response_time_ms": (time.time() - start_time) * 1000,
+                "outgoing_interface": out_iface,
+            })
+            return
 
         # Gửi phản hồi 200 cho browser → tunnel đã sẵn sàng
         client_socket.sendall(b"HTTP/1.1 200 Connection Established\r\n\r\n")
@@ -603,29 +662,8 @@ def handle_https_tunnel(client_socket: socket.socket, hostname: str,
             "outgoing_interface": out_iface,
         })
 
-    except socket.timeout:
-        try:
-            client_socket.sendall(b"HTTP/1.1 504 Gateway Timeout\r\n\r\n")
-        except Exception:
-            pass
-    except (ConnectionRefusedError, socket.gaierror) as e:
-        try:
-            client_socket.sendall(b"HTTP/1.1 502 Bad Gateway\r\n\r\n")
-        except Exception:
-            pass
-        proxy_logger.log({
-            "timestamp": time.time(),
-            "client_ip": client_ip,
-            "method": "CONNECT",
-            "url": f"https://{hostname}:{port}",
-            "hostname": hostname,
-            "status_code": 502,
-            "cache_status": "ERROR",
-            "response_size": 0,
-            "response_time_ms": (time.time() - start_time) * 1000,
-            "outgoing_interface": out_iface,
-        })
     except Exception as e:
+        # Lỗi xảy ra trong quá trình truyền dữ liệu (ví dụ client ngắt kết nối đột ngột), bỏ qua im lặng
         pass
     finally:
         if server_sock:
@@ -633,6 +671,198 @@ def handle_https_tunnel(client_socket: socket.socket, hostname: str,
                 server_sock.close()
             except Exception:
                 pass
+
+
+# ════════════════════════════════════════════════════════
+# Proxy Authentication (RFC 7235)
+# ════════════════════════════════════════════════════════
+
+def send_captive_portal_login(client_socket: socket.socket, redirect_to: str, error_msg: str = ""):
+    """Gửi trang đăng nhập Captive Portal tự thiết kế."""
+    err_html = f'<div class="error">❌ {error_msg}</div>' if error_msg else ''
+    body_str = f"""<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>🔐 Xác Thực Proxy Server</title>
+    <style>
+        body {{ font-family: 'Inter', sans-serif; background: #0f0f1a; color: #e0e0e0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
+        .box {{ background: rgba(20, 20, 35, 0.85); padding: 40px; border-radius: 24px; border: 1px solid rgba(102, 126, 234, 0.2); width: 360px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; }}
+        h1 {{ color: #667eea; font-size: 24px; margin-bottom: 24px; }}
+        .input-group {{ margin-bottom: 20px; text-align: left; }}
+        label {{ display: block; margin-bottom: 8px; font-size: 13px; color: #9a9ab0; }}
+        input {{ width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3); background: rgba(10, 10, 20, 0.5); color: #fff; box-sizing: border-box; }}
+        input:focus {{ outline: none; border-color: #667eea; }}
+        .btn {{ width: 100%; padding: 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }}
+        .btn:hover {{ opacity: 0.9; transform: translateY(-2px); }}
+        .error {{ color: #ff5e5e; font-size: 13px; margin-top: 12px; }}
+        .footer {{ font-size: 11px; color: #4a4a62; margin-top: 30px; }}
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🔐 ĐĂNG NHẬP PROXY</h1>
+        <form action="/proxy_login_submit" method="POST">
+            <input type="hidden" name="redirect_to" value="{redirect_to}">
+            <div class="input-group">
+                <label>Tên đăng nhập</label>
+                <input type="text" name="username" required placeholder="Nhập username">
+            </div>
+            <div class="input-group">
+                <label>Mật khẩu</label>
+                <input type="password" name="password" required placeholder="Nhập password">
+            </div>
+            <button type="submit" class="btn">Đăng nhập</button>
+            {err_html}
+        </form>
+        <div class="footer">Custom Proxy Server · Mạng Máy Tính</div>
+    </div>
+</body>
+</html>"""
+    body = body_str.encode("utf-8")
+    header = (
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html; charset=utf-8\r\n"
+        f"Content-Length: {len(body)}\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+    )
+    client_socket.sendall(header.encode("utf-8") + body)
+
+
+def send_captive_portal_success(client_socket: socket.socket, redirect_to: str):
+    """Gửi trang thông báo đăng nhập thành công và chuyển hướng."""
+    body_str = f"""<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="1.5;url={redirect_to}">
+    <title>Đăng nhập thành công</title>
+    <style>
+        body {{ font-family: 'Inter', sans-serif; background: #0f0f1a; color: #e0e0e0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
+        .box {{ background: rgba(20, 20, 35, 0.85); padding: 40px; border-radius: 24px; border: 1px solid rgba(72, 187, 120, 0.2); text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }}
+        h1 {{ color: #48bb78; font-size: 24px; margin-bottom: 12px; }}
+        p {{ color: #9a9ab0; font-size: 14px; }}
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>🎉 Đăng Nhập Thành Công</h1>
+        <p>Đang chuyển hướng bạn quay lại trang cũ...</p>
+    </div>
+</body>
+</html>"""
+    body = body_str.encode("utf-8")
+    header = (
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html; charset=utf-8\r\n"
+        f"Content-Length: {len(body)}\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+    )
+    client_socket.sendall(header.encode("utf-8") + body)
+
+
+def send_captive_portal_blocked(client_socket: socket.socket):
+    """Gửi phản hồi 403 Forbidden yêu cầu xác thực trước khi kết nối HTTPS CONNECT."""
+    body_str = """<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8"><title>403 Authentication Required</title>
+<style>body{font-family:Inter,sans-serif;background:#0f0f1a;color:#e0e0e0;display:flex;align-items:center;
+justify-content:center;min-height:100vh;margin:0}.box{text-align:center;padding:50px;background:rgba(20,20,35,0.85);
+border-radius:24px;border:1px solid rgba(239,68,68,0.2);max-width:500px;box-shadow:0 15px 35px rgba(0,0,0,0.5)}
+.icon{font-size:64px;margin-bottom:20px}h1{color:#ef4444;font-size:24px;margin-bottom:12px}
+p{color:#9a9ab0;font-size:14px;line-height:1.6}
+a{color:#667eea;text-decoration:none;font-weight:bold}</style></head>
+<body><div class="box"><div class="icon">🔐</div><h1>Yêu Cầu Đăng Nhập</h1>
+<p>Bạn cần xác thực trước khi truy cập trang web HTTPS này.<br>Vui lòng mở một trang HTTP thường như <a href="http://neverssl.com">neverssl.com</a> để đăng nhập hoặc truy cập trực tiếp <a href="http://localhost:5000">Dashboard</a>.</p>
+<p style="margin-top:20px;font-size:11px;color:#4a4a62">HTTP 403 Forbidden / Proxy Authentication Required</p>
+</div></body></html>"""
+    body = body_str.encode("utf-8")
+    header = (
+        "HTTP/1.1 403 Forbidden\r\n"
+        "Content-Type: text/html; charset=utf-8\r\n"
+        f"Content-Length: {len(body)}\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+    )
+    client_socket.sendall(header.encode("utf-8") + body)
+
+
+def send_simulated_http_error(client_socket: socket.socket, status_code: int, hostname: str, client_ip: str, method: str, url: str):
+    """Gửi phản hồi lỗi HTTP giả lập tương ứng (HTML cho HTTP, header thô cho HTTPS CONNECT)."""
+    if method == "CONNECT":
+        status_lines = {
+            403: "HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n",
+            404: "HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n",
+            500: "HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n\r\n",
+            503: "HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\n",
+            504: "HTTP/1.1 504 Gateway Timeout\r\nConnection: close\r\n\r\n",
+        }
+        resp = status_lines.get(status_code, "HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n")
+        client_socket.sendall(resp.encode("utf-8"))
+        proxy_logger.log({
+            "timestamp": time.time(),
+            "client_ip": client_ip,
+            "method": method,
+            "url": url,
+            "hostname": hostname,
+            "status_code": status_code,
+            "cache_status": "SIMULATED",
+            "response_size": 0,
+            "response_time_ms": 0,
+            "outgoing_interface": "-",
+        })
+    else:
+        # Tạo trang HTML lỗi
+        error_info = {
+            403: ("🔒", "403 Forbidden", "Quyền Truy Cập Bị Từ Chối", "Proxy Server đã chặn quyền truy cập của bạn vào trang này.", "rgba(239, 68, 68, 0.2)", "#ef4444"),
+            404: ("🔍", "404 Not Found", "Không Tìm Thấy Trang Web", "Không tìm thấy trang hoặc tài nguyên được yêu cầu trên máy chủ gốc.", "rgba(102, 126, 234, 0.2)", "#667eea"),
+            500: ("⚙️", "500 Internal Server Error", "Lỗi Cấu Hình Nội Bộ Máy Chủ", "Máy chủ gốc đang gặp sự cố cấu hình nội bộ và không thể xử lý yêu cầu.", "rgba(249, 115, 22, 0.2)", "#f97316"),
+            503: ("🚧", "503 Service Unavailable", "Dịch Vụ Tạm Thời Không Khả Dụng", "Máy chủ đang quá tải hoặc bảo trì định kỳ.", "rgba(234, 179, 8, 0.2)", "#eab308"),
+            504: ("⏱️", "504 Gateway Timeout", "Hết Thời Gian Chờ Cổng Kết Nối", "Proxy Server đã hết thời gian chờ phản hồi từ máy chủ gốc.", "rgba(168, 85, 247, 0.2)", "#a855f7"),
+        }
+        icon, code_str, title, desc, border_color, text_color = error_info.get(
+            status_code, ("🔌", f"{status_code} Error", "Lỗi Kết Nối", "Gặp lỗi không xác định.", "rgba(239, 68, 68, 0.2)", "#ef4444")
+        )
+        
+        body_str = f"""<!DOCTYPE html>
+<html lang="vi"><head><meta charset="UTF-8"><title>{code_str}</title>
+<style>
+    body {{ font-family: 'Inter', sans-serif; background: #0f0f1a; color: #e0e0e0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
+    .box {{ text-align: center; padding: 50px; background: rgba(20, 20, 35, 0.85); border-radius: 24px; border: 1px solid {border_color}; max-width: 500px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }}
+    .icon {{ font-size: 64px; margin-bottom: 20px; }}
+    h1 {{ color: {text_color}; font-size: 26px; margin-bottom: 12px; font-weight: 700; }}
+    p {{ color: #9a9ab0; font-size: 14px; line-height: 1.6; }}
+    .url {{ font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; color: #fff; word-break: break-all; }}
+</style></head>
+<body><div class="box">
+    <div class="icon">{icon}</div>
+    <h1>{title}</h1>
+    <p>Proxy Server đã chặn kết nối tới: <br><span class="url">{url}</span></p>
+    <p style="margin-top: 15px;">{desc}</p>
+    <p style="margin-top: 25px; font-size: 11px; color: #4a4a62">HTTP {code_str} · Giả lập lỗi bởi Proxy</p>
+</div></body></html>"""
+        body = body_str.encode("utf-8")
+        header = (
+            f"HTTP/1.1 {code_str}\r\n"
+            "Content-Type: text/html; charset=utf-8\r\n"
+            f"Content-Length: {len(body)}\r\n"
+            "Connection: close\r\n"
+            "\r\n"
+        )
+        client_socket.sendall(header.encode("utf-8") + body)
+        proxy_logger.log({
+            "timestamp": time.time(),
+            "client_ip": client_ip,
+            "method": method,
+            "url": url,
+            "hostname": hostname,
+            "status_code": status_code,
+            "cache_status": "SIMULATED",
+            "response_size": len(body),
+            "response_time_ms": 0,
+            "outgoing_interface": "-",
+        })
 
 
 # ════════════════════════════════════════════════════════
@@ -646,9 +876,11 @@ def handle_client(client_socket: socket.socket, client_addr: tuple):
     Luồng xử lý:
     1. Đọc raw request từ browser.
     2. Parse request line và headers.
-    3. Trích xuất hostname, port.
-    4. Kiểm tra Web Filter → chặn nếu cần.
-    5. Phân loại: CONNECT (HTTPS) → tunnel, còn lại (HTTP) → forward + cache.
+    3. Kiểm tra Proxy Authentication (RFC 7235) → yêu cầu đăng nhập nếu chưa.
+    4. Kiểm tra Rate Limiting (RFC 6585) → chặn nếu vượt ngưỡng.
+    5. Trích xuất hostname, port.
+    6. Kiểm tra Web Filter → chặn nếu cần.
+    7. Phân loại: CONNECT (HTTPS) → tunnel, còn lại (HTTP) → forward + cache.
     """
     client_ip = client_addr[0]
 
@@ -671,7 +903,108 @@ def handle_client(client_socket: socket.socket, client_addr: tuple):
         if not hostname:
             return
 
-        # ──── Bước 3: Kiểm tra Web Filter ────
+        # ──── Bước 3: Kiểm tra Proxy Authentication (Captive Portal) ────
+        if config.AUTH_ENABLED and client_ip not in authenticated_ips:
+            # Kiểm tra xem đây có phải là request submit form đăng nhập không
+            is_login_submit = False
+            if method == "POST" and "/proxy_login_submit" in url:
+                is_login_submit = True
+            
+            if is_login_submit:
+                # Phân tích thông tin đăng nhập trong body
+                body_idx = raw_request.find(b"\r\n\r\n")
+                username, password, redirect_to = "", "", "http://neverssl.com"
+                if body_idx != -1:
+                    body = raw_request[body_idx+4:].decode("utf-8", errors="replace")
+                    from urllib.parse import parse_qs, unquote
+                    params = parse_qs(body)
+                    username = params.get("username", [""])[0]
+                    password = params.get("password", [""])[0]
+                    redirect_to = params.get("redirect_to", ["http://neverssl.com"])[0]
+                    redirect_to = unquote(redirect_to)
+                
+                if username == config.AUTH_USERNAME and password == config.AUTH_PASSWORD:
+                    authenticated_ips.add(client_ip)
+                    send_captive_portal_success(client_socket, redirect_to)
+                    proxy_logger.log({
+                        "timestamp": time.time(),
+                        "client_ip": client_ip,
+                        "method": method,
+                        "url": url,
+                        "hostname": hostname,
+                        "status_code": 200,
+                        "cache_status": "BYPASS",
+                        "response_size": 0,
+                        "response_time_ms": 0,
+                    })
+                else:
+                    send_captive_portal_login(client_socket, redirect_to, "Tài khoản hoặc mật khẩu không chính xác!")
+                    proxy_logger.log({
+                        "timestamp": time.time(),
+                        "client_ip": client_ip,
+                        "method": method,
+                        "url": url,
+                        "hostname": hostname,
+                        "status_code": 401,
+                        "cache_status": "AUTH_REQUIRED",
+                        "response_size": 0,
+                        "response_time_ms": 0,
+                    })
+                return
+            else:
+                # Nếu chưa đăng nhập, hiển thị trang đăng nhập (với GET) hoặc chặn (với CONNECT)
+                if method == "CONNECT":
+                    send_captive_portal_blocked(client_socket)
+                    proxy_logger.log({
+                        "timestamp": time.time(),
+                        "client_ip": client_ip,
+                        "method": method,
+                        "url": url,
+                        "hostname": hostname,
+                        "status_code": 403,
+                        "cache_status": "AUTH_REQUIRED",
+                        "response_size": 0,
+                        "response_time_ms": 0,
+                    })
+                else:
+                    send_captive_portal_login(client_socket, url)
+                    proxy_logger.log({
+                        "timestamp": time.time(),
+                        "client_ip": client_ip,
+                        "method": method,
+                        "url": url,
+                        "hostname": hostname,
+                        "status_code": 401,
+                        "cache_status": "AUTH_REQUIRED",
+                        "response_size": 0,
+                        "response_time_ms": 0,
+                    })
+                return
+
+        # ──── Bước 3.5: Kiểm tra Giả Lập Lỗi Phản Hồi HTTP ────
+        if config.SIMULATE_HTTP_ERROR:
+            send_simulated_http_error(client_socket, config.SIMULATE_HTTP_ERROR_CODE, hostname, client_ip, method, url)
+            return
+
+        # ──── Bước 4: Kiểm tra Rate Limiting (RFC 6585) ────
+        is_limited, retry_after = rate_limiter.is_rate_limited(client_ip)
+        if is_limited:
+            limited_response = rate_limiter.get_rate_limited_page(client_ip, retry_after)
+            client_socket.sendall(limited_response)
+            proxy_logger.log({
+                "timestamp": time.time(),
+                "client_ip": client_ip,
+                "method": method,
+                "url": url,
+                "hostname": hostname,
+                "status_code": 429,
+                "cache_status": "RATE_LIMITED",
+                "response_size": len(limited_response),
+                "response_time_ms": 0,
+            })
+            return
+
+        # ──── Bước 5: Kiểm tra Web Filter ────
         blocked, reason = web_filter.should_block(hostname)
         if blocked:
             # Gửi trang 403 tự thiết kế
@@ -691,7 +1024,7 @@ def handle_client(client_socket: socket.socket, client_addr: tuple):
             })
             return
 
-        # ──── Bước 4: Xử lý theo loại request ────
+        # ──── Bước 6: Xử lý theo loại request ────
         if method == "CONNECT":
             # HTTPS Tunneling
             handle_https_tunnel(client_socket, hostname, port, client_ip)
@@ -721,7 +1054,7 @@ def start_dashboard():
     """Khởi động Flask Dashboard trong thread riêng."""
     try:
         from dashboard import create_app
-        app = create_app(proxy_logger, cache_manager, web_filter)
+        app = create_app(proxy_logger, cache_manager, web_filter, rate_limiter)
         print(f"\n🌐 Dashboard đang chạy tại: http://{config.DASHBOARD_HOST}:{config.DASHBOARD_PORT}\n")
         app.run(
             host=config.DASHBOARD_HOST,
@@ -783,6 +1116,10 @@ def main():
     print(f"  📋 File Log:                 {config.LOG_FILE}")
     print(f"  ⛔ Blacklist:                {len(web_filter._blacklist)} domains")
     print(f"  🚫 Adlist:                   {len(web_filter._adlist)} domains")
+    auth_status = f"Bật (user: {config.AUTH_USERNAME})" if config.AUTH_ENABLED else "Tắt"
+    print(f"  🔐 Proxy Auth:               {auth_status}")
+    rl_status = f"{config.RATE_LIMIT_MAX_REQUESTS} req/{config.RATE_LIMIT_WINDOW}s" if config.RATE_LIMIT_MAX_REQUESTS > 0 else "Tắt"
+    print(f"  ⏱️  Rate Limiting:            {rl_status}")
     print("=" * 65)
     print("  Nhấn Ctrl+C để dừng server")
     print("=" * 65)

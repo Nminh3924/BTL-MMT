@@ -1,0 +1,24 @@
+{
+  "url": "http://httpbin.org/flasgger_static/swagger-ui.css",
+  "hash": "726a411799bd0c8a9dc47f1c046c59ad",
+  "created_at": 1781158036.517623,
+  "last_accessed": 1781158036.517623,
+  "ttl": 43200,
+  "size": 154356,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 06:07:15 GMT",
+    "content-type": "text/css; charset=utf-8",
+    "content-length": "153930",
+    "connection": "keep-alive",
+    "server": "gunicorn/19.9.0",
+    "last-modified": "Tue, 14 Jan 2020 07:34:22 GMT",
+    "cache-control": "public, max-age=43200",
+    "expires": "Thu, 11 Jun 2026 18:07:15 GMT",
+    "etag": "\"1578987262.0-153930-3675134707\"",
+    "accept-ranges": "bytes",
+    "access-control-allow-origin": "*",
+    "access-control-allow-credentials": "true"
+  },
+  "last_modified": "Tue, 14 Jan 2020 07:34:22 GMT",
+  "etag": "\"1578987262.0-153930-3675134707\""
+}

@@ -1,0 +1,23 @@
+{
+  "url": "http://astoundingsilvergrandbirds.neverssl.com/online/",
+  "hash": "89f290d6978319c476dded6d455c7714",
+  "created_at": 1781161464.366396,
+  "last_accessed": 1781161530.9342072,
+  "ttl": 3600,
+  "size": 1509,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 07:04:23 GMT",
+    "server": "Apache/2.4.66 ()",
+    "upgrade": "h2,h2c",
+    "connection": "Upgrade, close",
+    "last-modified": "Wed, 29 Jun 2022 00:23:22 GMT",
+    "etag": "\"8be-5e28b29291e10-gzip\"",
+    "accept-ranges": "bytes",
+    "vary": "Accept-Encoding",
+    "content-encoding": "gzip",
+    "content-length": "1173",
+    "content-type": "text/html; charset=UTF-8"
+  },
+  "last_modified": "Wed, 29 Jun 2022 00:23:22 GMT",
+  "etag": "\"8be-5e28b29291e10-gzip\""
+}

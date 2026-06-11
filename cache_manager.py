@@ -43,7 +43,7 @@ class CacheManager:
 
     # ──────────────────── Public API ────────────────────
 
-    def get(self, url: str) -> tuple[bool, bytes | None, dict | None]:
+    def get(self, url: str, ignore_ttl: bool = False) -> tuple[bool, bytes | None, dict | None]:
         """
         Kiểm tra và đọc cache cho URL.
 
@@ -70,7 +70,7 @@ class CacheManager:
                 return False, None, None
 
             # Kiểm tra TTL
-            if self._is_expired(meta):
+            if not ignore_ttl and self._is_expired(meta):
                 self.misses += 1
                 # Trả meta để caller có thể dùng If-Modified-Since revalidate
                 return False, None, meta

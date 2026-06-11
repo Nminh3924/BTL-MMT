@@ -40,16 +40,73 @@
         </div>
         <div class="control-card">
             <div class="control-header">
-                <span class="control-icon">🔌</span>
-                <h3>Giả Lập Lỗi Cổng Mạng Chính (Failover Simulation)</h3>
+                <span class="control-icon">⚠️</span>
+                <h3>Giả Lập Mã Lỗi Phản Hồi HTTP (HTTP Status Code Simulation)</h3>
             </div>
             <div class="control-body">
                 <label class="switch-container">
-                    <input type="checkbox" id="simulateFailoverCheckbox" onchange="updateSettings()">
+                    <input type="checkbox" id="simulateHttpErrorCheckbox" onchange="updateSettings()">
                     <span class="switch-slider"></span>
-                    <span class="switch-text">Kích hoạt Giả Lập Lỗi</span>
+                    <span class="switch-text">Bật Giả Lập Lỗi HTTP</span>
                 </label>
-                <span class="control-desc">Khi bật, Proxy sẽ bỏ qua Primary Interface và tự động chuyển hướng qua Backup Interface để demo cơ chế Failover.</span>
+                <div style="margin-top: 6px; margin-bottom: 6px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+                    <label class="input-label" style="font-size: 11px; color: #7a7a94; font-weight: 600; text-transform: uppercase;">Mã lỗi phản hồi cần giả lập</label>
+                    <select id="simulateHttpErrorCodeSelect" onchange="updateSettings()" class="control-select">
+                        <option value="403">HTTP 403 Forbidden</option>
+                        <option value="404">HTTP 404 Not Found</option>
+                        <option value="500">HTTP 500 Internal Server Error</option>
+                        <option value="503">HTTP 503 Service Unavailable</option>
+                        <option value="504">HTTP 504 Gateway Timeout</option>
+                    </select>
+                </div>
+                <span class="control-desc">Khi bật, Proxy chặn mọi kết nối (cả HTTP/HTTPS) và trả về trực tiếp mã lỗi tương ứng. Với trang HTTP thường, Proxy sẽ phục vụ giao diện HTML lỗi tự thiết kế đẹp mắt.</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="control-panel">
+        <div class="control-card">
+            <div class="control-header">
+                <span class="control-icon">🔐</span>
+                <h3>Xác Thực Proxy (Proxy Authentication — RFC 7235)</h3>
+            </div>
+            <div class="control-body">
+                <label class="switch-container">
+                    <input type="checkbox" id="authEnabledCheckbox" onchange="updateSettings()">
+                    <span class="switch-slider switch-slider-blue"></span>
+                    <span class="switch-text">Bật Xác Thực Đăng Nhập</span>
+                </label>
+                <div class="auth-credentials" id="authCredentials">
+                    <div class="input-group">
+                        <label class="input-label">Username</label>
+                        <input type="text" id="authUsername" class="control-input" value="admin" onchange="updateSettings()">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Password</label>
+                        <input type="password" id="authPassword" class="control-input" placeholder="Nhập mật khẩu mới..." onchange="updateSettings()">
+                    </div>
+                </div>
+                <span class="control-desc">Khi bật, trình duyệt sẽ yêu cầu nhập username/password trước khi duyệt web qua proxy. Sử dụng HTTP Basic Authentication (Base64).</span>
+            </div>
+        </div>
+        <div class="control-card">
+            <div class="control-header">
+                <span class="control-icon">⏱️</span>
+                <h3>Giới Hạn Tốc Độ Yêu Cầu (Rate Limiting — RFC 6585)</h3>
+            </div>
+            <div class="control-body">
+                <select id="rateLimitSelect" onchange="updateSettings()" class="control-select">
+                    <option value="0">Tắt (Unlimited)</option>
+                    <option value="10">10 request / phút (Rất chặt)</option>
+                    <option value="30">30 request / phút (Chặt)</option>
+                    <option value="60">60 request / phút (Trung bình)</option>
+                    <option value="120">120 request / phút (Thoải mái)</option>
+                </select>
+                <div class="rate-limit-info">
+                    <span class="rl-stat">🛡️ Đã chặn: <strong id="rateLimitedCount">0</strong> request</span>
+                    <span class="rl-stat">👥 IP đang theo dõi: <strong id="trackedIPs">0</strong></span>
+                </div>
+                <span class="control-desc">Giới hạn số lượng request mỗi IP trong 60 giây. Vượt ngưỡng sẽ trả về HTTP 429 Too Many Requests. Bảo vệ proxy khỏi tấn công DDoS.</span>
             </div>
         </div>
     </section>
@@ -59,6 +116,7 @@
         <div class="stat-card"><div class="stat-icon si-green">💾</div><div class="stat-info"><div class="stat-value" id="cacheHitRate">0%</div><div class="stat-label">Cache Hit Rate</div></div></div>
         <div class="stat-card"><div class="stat-icon si-pink">📦</div><div class="stat-info"><div class="stat-value" id="bytesSaved">0 B</div><div class="stat-label">Bandwidth Tiết Kiệm</div></div></div>
         <div class="stat-card"><div class="stat-icon si-red">⛔</div><div class="stat-info"><div class="stat-value" id="totalBlocked">0</div><div class="stat-label">Đã Chặn</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-orange">⏱️</div><div class="stat-info"><div class="stat-value" id="totalRateLimited">0</div><div class="stat-label">Rate Limited</div></div></div>
     </section>
 
     <section class="charts-row">
@@ -89,7 +147,7 @@ const methodsChart = new Chart(document.getElementById('methodsChart'), {
 });
 function fmtB(b){if(!b)return'0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return(b/Math.pow(k,i)).toFixed(1)+' '+s[i];}
 function stsCls(c){if(c>=200&&c<300)return'status-2xx';if(c>=300&&c<400)return'status-3xx';if(c>=400&&c<500)return'status-4xx';return'status-5xx';}
-function cacheCls(s){return{HIT:'cache-hit',MISS:'cache-miss',BLOCKED:'cache-blocked',TUNNEL:'cache-tunnel'}[s]||'cache-other';}
+function cacheCls(s){return{HIT:'cache-hit',MISS:'cache-miss',BLOCKED:'cache-blocked',TUNNEL:'cache-tunnel',RATE_LIMITED:'cache-ratelimited',AUTH_REQUIRED:'cache-auth'}[s]||'cache-other';}
 function ifaceCls(i){return i === 'Primary Connection' || i === 'Default' ? 'iface-primary' : (i === 'Cache' ? 'iface-cache' : 'iface-backup');}
 async function fetchStats(){try{const r=await fetch('/api/stats'),d=await r.json();
     document.getElementById('totalRequests').textContent=d.total_requests||0;
@@ -103,6 +161,10 @@ async function fetchStats(){try{const r=await fetch('/api/stats'),d=await r.json
     const td=d.top_domains||[],c=document.getElementById('topDomains');
     if(!td.length){c.innerHTML='<div class="empty-state">Chưa có</div>';}
     else{const mx=td[0][1];c.innerHTML=td.map(([dm,ct],i)=>`<div class="domain-row"><span class="domain-rank">#${i+1}</span><span class="domain-name-d">${dm}</span><div class="domain-bar-bg"><div class="domain-bar" style="width:${mx?ct/mx*100:0}%"></div></div><span class="domain-count">${ct}</span></div>`).join('');}
+    const rl=d.rate_limit_stats||{};
+    document.getElementById('rateLimitedCount').textContent=rl.total_rate_limited||0;
+    document.getElementById('trackedIPs').textContent=rl.active_tracked_ips||0;
+    document.getElementById('totalRateLimited').textContent=rl.total_rate_limited||0;
 }catch(e){}}
 async function fetchLogs(){try{const r=await fetch('/api/logs'),l=await r.json();
     document.getElementById('logCount').textContent=l.length+' entries';
@@ -114,12 +176,25 @@ async function fetchLogs(){try{const r=await fetch('/api/logs'),l=await r.json()
 }catch(e){}}
 async function fetchSettings(){try{const r=await fetch('/api/settings'),s=await r.json();
     document.getElementById('bandwidthLimitSelect').value=s.bandwidth_limit||0;
-    document.getElementById('simulateFailoverCheckbox').checked=s.simulate_failover||false;
+    document.getElementById('simulateHttpErrorCheckbox').checked=s.simulate_http_error||false;
+    document.getElementById('simulateHttpErrorCodeSelect').value=s.simulate_http_error_code||503;
+    document.getElementById('authEnabledCheckbox').checked=s.auth_enabled||false;
+    document.getElementById('authUsername').value=s.auth_username||'admin';
+    document.getElementById('rateLimitSelect').value=s.rate_limit_max_requests||0;
+    document.getElementById('authCredentials').style.display=s.auth_enabled?'flex':'none';
 }catch(e){}}
 async function updateSettings(){
     const limit=parseInt(document.getElementById('bandwidthLimitSelect').value);
-    const failover=document.getElementById('simulateFailoverCheckbox').checked;
-    try{await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bandwidth_limit:limit,simulate_failover:failover})});}catch(e){}
+    const errEnabled=document.getElementById('simulateHttpErrorCheckbox').checked;
+    const errCode=parseInt(document.getElementById('simulateHttpErrorCodeSelect').value);
+    const authEnabled=document.getElementById('authEnabledCheckbox').checked;
+    const authUsername=document.getElementById('authUsername').value;
+    const authPassword=document.getElementById('authPassword').value;
+    const rateLimit=parseInt(document.getElementById('rateLimitSelect').value);
+    document.getElementById('authCredentials').style.display=authEnabled?'flex':'none';
+    const body={bandwidth_limit:limit,simulate_http_error:errEnabled,simulate_http_error_code:errCode,auth_enabled:authEnabled,auth_username:authUsername,rate_limit_max_requests:rateLimit};
+    if(authPassword) body.auth_password=authPassword;
+    try{await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(e){}
 }
 async function clearCache(){if(!confirm('Xóa toàn bộ cache?'))return;await fetch('/api/cache/clear',{method:'POST'});fetchStats();}
 async function reloadFilter(){await fetch('/api/filter/reload',{method:'POST'});alert('Đã reload!');}

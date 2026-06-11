@@ -1,0 +1,20 @@
+{
+  "url": "http://info.cern.ch/",
+  "hash": "8681e9875d0a8a21f241f6130f08bef7",
+  "created_at": 1781158033.683249,
+  "last_accessed": 1781158072.508773,
+  "ttl": 3600,
+  "size": 878,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 06:07:13 GMT",
+    "server": "Apache",
+    "last-modified": "Wed, 05 Feb 2014 16:00:31 GMT",
+    "etag": "\"286-4f1aadb3105c0\"",
+    "accept-ranges": "bytes",
+    "content-length": "646",
+    "connection": "close",
+    "content-type": "text/html"
+  },
+  "last_modified": "Wed, 05 Feb 2014 16:00:31 GMT",
+  "etag": "\"286-4f1aadb3105c0\""
+}

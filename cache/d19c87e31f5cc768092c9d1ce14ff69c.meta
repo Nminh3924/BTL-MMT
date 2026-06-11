@@ -1,0 +1,24 @@
+{
+  "url": "http://httpbin.org/flasgger_static/swagger-ui-bundle.js",
+  "hash": "d19c87e31f5cc768092c9d1ce14ff69c",
+  "created_at": 1781158076.721828,
+  "last_accessed": 1781158076.721828,
+  "ttl": 43200,
+  "size": 1429236,
+  "headers": {
+    "date": "Thu, 11 Jun 2026 06:07:08 GMT",
+    "content-type": "application/javascript",
+    "content-length": "1428809",
+    "connection": "keep-alive",
+    "server": "gunicorn/19.9.0",
+    "last-modified": "Tue, 14 Jan 2020 07:34:22 GMT",
+    "cache-control": "public, max-age=43200",
+    "expires": "Thu, 11 Jun 2026 18:07:08 GMT",
+    "etag": "\"1578987262.0-1428809-2223119662\"",
+    "accept-ranges": "bytes",
+    "access-control-allow-origin": "*",
+    "access-control-allow-credentials": "true"
+  },
+  "last_modified": "Tue, 14 Jan 2020 07:34:22 GMT",
+  "etag": "\"1578987262.0-1428809-2223119662\""
+}

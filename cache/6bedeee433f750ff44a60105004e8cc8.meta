@@ -1,0 +1,23 @@
+{
+  "url": "http://astoundinginnermajesticpoem.neverssl.com/online/",
+  "hash": "6bedeee433f750ff44a60105004e8cc8",
+  "created_at": 1781291603.049202,
+  "last_accessed": 1781292317.068858,
+  "ttl": 3600,
+  "size": 1509,
+  "headers": {
+    "date": "Fri, 12 Jun 2026 19:13:22 GMT",
+    "server": "Apache/2.4.66 ()",
+    "upgrade": "h2,h2c",
+    "connection": "Upgrade, close",
+    "last-modified": "Wed, 29 Jun 2022 00:23:22 GMT",
+    "etag": "\"8be-5e28b29291e10-gzip\"",
+    "accept-ranges": "bytes",
+    "vary": "Accept-Encoding",
+    "content-encoding": "gzip",
+    "content-length": "1173",
+    "content-type": "text/html; charset=UTF-8"
+  },
+  "last_modified": "Wed, 29 Jun 2022 00:23:22 GMT",
+  "etag": "\"8be-5e28b29291e10-gzip\""
+}

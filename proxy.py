@@ -427,14 +427,19 @@ def serve_offline_fallback(client_socket: socket.socket, url: str, hostname: str
     # Không có cache -> Trả về trang 502 Offline tự thiết kế
     body_str = f"""<!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><title>502 Web Server Offline</title>
-<style>body{{font-family:Inter,sans-serif;background:#0f0f1a;color:#e0e0e0;display:flex;align-items:center;
-justify-content:center;min-height:100vh;margin:0}}.box{{text-align:center;padding:50px;background:rgba(20,20,35,0.85);
-border-radius:24px;border:1px solid rgba(239,68,68,0.2);max-width:500px;box-shadow:0 15px 35px rgba(0,0,0,0.5)}}
-.icon{{font-size:64px;margin-bottom:20px}}h1{{color:#ef4444;font-size:24px;margin-bottom:12px}}
-p{{color:#9a9ab0;font-size:14px;line-height:1.6}}</style></head>
-<body><div class="box"><div class="icon">🔌</div><h1>Máy Chủ Ngoại Tuyến</h1>
-<p>Proxy Server không thể kết nối tới trang web <b>{hostname}</b>.<br>Trang web này có thể đang bảo trì hoặc gặp sự cố và không có bản sao lưu nào trong bộ nhớ đệm.</p>
-<p style="margin-top:20px;font-size:11px;color:#4a4a62">HTTP 502 Bad Gateway / Connection Error</p>
+<style>
+    body {{ font-family: 'Inter', sans-serif; background: #0a0b10; color: #f3f4f6; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }}
+    .box {{ text-align: center; padding: 40px; background: #12131a; border-radius: 16px; border: 1px solid #222533; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }}
+    .badge {{ display: inline-block; padding: 5px 12px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 6px; font-size: 11px; font-weight: 600; color: #ef4444; text-transform: uppercase; margin-bottom: 20px; }}
+    h1 {{ color: #f3f4f6; font-size: 20px; margin-bottom: 12px; font-weight: 700; letter-spacing: -0.02em; }}
+    p {{ color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0 0 16px; }}
+    .footer {{ font-size: 11px; color: #6b7280; border-top: 1px solid rgba(255,255,255,0.02); padding-top: 16px; margin-top: 20px; }}
+</style></head>
+<body><div class="box">
+    <div class="badge">Offline</div>
+    <h1>Máy Chủ Ngoại Tuyến</h1>
+    <p>Proxy Server không thể kết nối tới trang web <b>{hostname}</b>.<br>Trang web này có thể đang bảo trì hoặc gặp sự cố và không có bản sao lưu trong bộ nhớ đệm.</p>
+    <div class="footer">HTTP 502 Bad Gateway / Connection Error</div>
 </div></body></html>"""
     body = body_str.encode("utf-8")
     header = (
@@ -679,38 +684,38 @@ def handle_https_tunnel(client_socket: socket.socket, hostname: str,
 
 def send_captive_portal_login(client_socket: socket.socket, redirect_to: str, error_msg: str = ""):
     """Gửi trang đăng nhập Captive Portal tự thiết kế."""
-    err_html = f'<div class="error">❌ {error_msg}</div>' if error_msg else ''
+    err_html = f'<div class="error">{error_msg}</div>' if error_msg else ''
     body_str = f"""<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>🔐 Xác Thực Proxy Server</title>
+    <title>Xác Thực Proxy Server</title>
     <style>
-        body {{ font-family: 'Inter', sans-serif; background: #0f0f1a; color: #e0e0e0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
-        .box {{ background: rgba(20, 20, 35, 0.85); padding: 40px; border-radius: 24px; border: 1px solid rgba(102, 126, 234, 0.2); width: 360px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; }}
-        h1 {{ color: #667eea; font-size: 24px; margin-bottom: 24px; }}
-        .input-group {{ margin-bottom: 20px; text-align: left; }}
-        label {{ display: block; margin-bottom: 8px; font-size: 13px; color: #9a9ab0; }}
-        input {{ width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3); background: rgba(10, 10, 20, 0.5); color: #fff; box-sizing: border-box; }}
-        input:focus {{ outline: none; border-color: #667eea; }}
-        .btn {{ width: 100%; padding: 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }}
-        .btn:hover {{ opacity: 0.9; transform: translateY(-2px); }}
-        .error {{ color: #ff5e5e; font-size: 13px; margin-top: 12px; }}
-        .footer {{ font-size: 11px; color: #4a4a62; margin-top: 30px; }}
+        body {{ font-family: 'Inter', sans-serif; background: #0a0b10; color: #f3f4f6; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }}
+        .box {{ background: #12131a; padding: 40px; border-radius: 16px; border: 1px solid #222533; width: 360px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; }}
+        h1 {{ color: #f3f4f6; font-size: 20px; margin-bottom: 24px; font-weight: 700; letter-spacing: -0.02em; }}
+        .input-group {{ margin-bottom: 16px; text-align: left; display: flex; flex-direction: column; gap: 6px; }}
+        label {{ display: block; font-size: 10px; color: #6b7280; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }}
+        input {{ width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #222533; background: #1a1c26; color: #f3f4f6; box-sizing: border-box; outline: none; font-size: 13px; transition: border-color 0.15s; }}
+        input:focus {{ border-color: #6366f1; }}
+        .btn {{ width: 100%; padding: 10px; border: none; border-radius: 6px; background: #6366f1; color: white; font-weight: 600; cursor: pointer; transition: background 0.15s; margin-top: 10px; font-size: 13px; }}
+        .btn:hover {{ background: #4f46e5; }}
+        .error {{ color: #ef4444; font-size: 12px; margin-top: 12px; font-weight: 500; text-align: left; padding: 8px 12px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 4px; }}
+        .footer {{ font-size: 11px; color: #6b7280; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.02); padding-top: 16px; }}
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>🔐 ĐĂNG NHẬP PROXY</h1>
+        <h1>Xác Thực Proxy</h1>
         <form action="/proxy_login_submit" method="POST">
             <input type="hidden" name="redirect_to" value="{redirect_to}">
             <div class="input-group">
                 <label>Tên đăng nhập</label>
-                <input type="text" name="username" required placeholder="Nhập username">
+                <input type="text" name="username" required placeholder="Tên đăng nhập">
             </div>
             <div class="input-group">
                 <label>Mật khẩu</label>
-                <input type="password" name="password" required placeholder="Nhập password">
+                <input type="password" name="password" required placeholder="Mật khẩu">
             </div>
             <button type="submit" class="btn">Đăng nhập</button>
             {err_html}
@@ -739,16 +744,16 @@ def send_captive_portal_success(client_socket: socket.socket, redirect_to: str):
     <meta http-equiv="refresh" content="1.5;url={redirect_to}">
     <title>Đăng nhập thành công</title>
     <style>
-        body {{ font-family: 'Inter', sans-serif; background: #0f0f1a; color: #e0e0e0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
-        .box {{ background: rgba(20, 20, 35, 0.85); padding: 40px; border-radius: 24px; border: 1px solid rgba(72, 187, 120, 0.2); text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }}
-        h1 {{ color: #48bb78; font-size: 24px; margin-bottom: 12px; }}
-        p {{ color: #9a9ab0; font-size: 14px; }}
+        body {{ font-family: 'Inter', sans-serif; background: #0a0b10; color: #f3f4f6; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }}
+        .box {{ background: #12131a; padding: 40px; border-radius: 16px; border: 1px solid #222533; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); max-width: 360px; width: 100%; }}
+        h1 {{ color: #10b981; font-size: 20px; margin-bottom: 12px; font-weight: 700; letter-spacing: -0.02em; }}
+        p {{ color: #9ca3af; font-size: 13px; }}
     </style>
 </head>
 <body>
     <div class="box">
-        <h1>🎉 Đăng Nhập Thành Công</h1>
-        <p>Đang chuyển hướng bạn quay lại trang cũ...</p>
+        <h1>Xác Thực Thành Công</h1>
+        <p>Đang chuyển hướng bạn quay lại trang web...</p>
     </div>
 </body>
 </html>"""
@@ -767,15 +772,21 @@ def send_captive_portal_blocked(client_socket: socket.socket):
     """Gửi phản hồi 403 Forbidden yêu cầu xác thực trước khi kết nối HTTPS CONNECT."""
     body_str = """<!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><title>403 Authentication Required</title>
-<style>body{font-family:Inter,sans-serif;background:#0f0f1a;color:#e0e0e0;display:flex;align-items:center;
-justify-content:center;min-height:100vh;margin:0}.box{text-align:center;padding:50px;background:rgba(20,20,35,0.85);
-border-radius:24px;border:1px solid rgba(239,68,68,0.2);max-width:500px;box-shadow:0 15px 35px rgba(0,0,0,0.5)}
-.icon{font-size:64px;margin-bottom:20px}h1{color:#ef4444;font-size:24px;margin-bottom:12px}
-p{color:#9a9ab0;font-size:14px;line-height:1.6}
-a{color:#667eea;text-decoration:none;font-weight:bold}</style></head>
-<body><div class="box"><div class="icon">🔐</div><h1>Yêu Cầu Đăng Nhập</h1>
-<p>Bạn cần xác thực trước khi truy cập trang web HTTPS này.<br>Vui lòng mở một trang HTTP thường như <a href="http://neverssl.com">neverssl.com</a> để đăng nhập hoặc truy cập trực tiếp <a href="http://localhost:5000">Dashboard</a>.</p>
-<p style="margin-top:20px;font-size:11px;color:#4a4a62">HTTP 403 Forbidden / Proxy Authentication Required</p>
+<style>
+    body { font-family: 'Inter', sans-serif; background: #0a0b10; color: #f3f4f6; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .box { text-align: center; padding: 40px; background: #12131a; border-radius: 16px; border: 1px solid #222533; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    .badge { display: inline-block; padding: 5px 12px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 6px; font-size: 11px; font-weight: 600; color: #818cf8; text-transform: uppercase; margin-bottom: 20px; }
+    h1 { color: #f3f4f6; font-size: 20px; margin-bottom: 12px; font-weight: 700; letter-spacing: -0.02em; }
+    p { color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0 0 16px; }
+    a { color: #6366f1; text-decoration: none; font-weight: 600; transition: color 0.15s; }
+    a:hover { color: #4f46e5; text-decoration: underline; }
+    .footer { font-size: 11px; color: #6b7280; border-top: 1px solid rgba(255,255,255,0.02); padding-top: 16px; margin-top: 20px; }
+</style></head>
+<body><div class="box">
+    <div class="badge">Auth Required</div>
+    <h1>Yêu Cầu Xác Thực</h1>
+    <p>Bạn cần đăng nhập trước khi truy cập trang web HTTPS bảo mật này.<br>Vui lòng mở một trang HTTP thường như <a href="http://neverssl.com">neverssl.com</a> để thực hiện đăng nhập hoặc truy cập trực tiếp <a href="http://localhost:5000">Dashboard</a>.</p>
+    <div class="footer">HTTP 403 Forbidden / Proxy Authentication Required</div>
 </div></body></html>"""
     body = body_str.encode("utf-8")
     header = (
@@ -815,32 +826,33 @@ def send_simulated_http_error(client_socket: socket.socket, status_code: int, ho
     else:
         # Tạo trang HTML lỗi
         error_info = {
-            403: ("🔒", "403 Forbidden", "Quyền Truy Cập Bị Từ Chối", "Proxy Server đã chặn quyền truy cập của bạn vào trang này.", "rgba(239, 68, 68, 0.2)", "#ef4444"),
-            404: ("🔍", "404 Not Found", "Không Tìm Thấy Trang Web", "Không tìm thấy trang hoặc tài nguyên được yêu cầu trên máy chủ gốc.", "rgba(102, 126, 234, 0.2)", "#667eea"),
-            500: ("⚙️", "500 Internal Server Error", "Lỗi Cấu Hình Nội Bộ Máy Chủ", "Máy chủ gốc đang gặp sự cố cấu hình nội bộ và không thể xử lý yêu cầu.", "rgba(249, 115, 22, 0.2)", "#f97316"),
-            503: ("🚧", "503 Service Unavailable", "Dịch Vụ Tạm Thời Không Khả Dụng", "Máy chủ đang quá tải hoặc bảo trì định kỳ.", "rgba(234, 179, 8, 0.2)", "#eab308"),
-            504: ("⏱️", "504 Gateway Timeout", "Hết Thời Gian Chờ Cổng Kết Nối", "Proxy Server đã hết thời gian chờ phản hồi từ máy chủ gốc.", "rgba(168, 85, 247, 0.2)", "#a855f7"),
+            403: ("Forbidden", "403 Forbidden", "Quyền Truy Cập Bị Từ Chối", "Proxy Server đã chặn quyền truy cập của bạn vào trang này.", "rgba(239, 68, 68, 0.15)", "#ef4444", "rgba(239, 68, 68, 0.08)"),
+            404: ("Not Found", "404 Not Found", "Không Tìm Thấy Trang Web", "Không tìm thấy trang hoặc tài nguyên được yêu cầu trên máy chủ gốc.", "rgba(99, 102, 241, 0.15)", "#818cf8", "rgba(99, 102, 241, 0.08)"),
+            500: ("Internal Error", "500 Internal Server Error", "Lỗi Cấu Hình Nội Bộ Máy Chủ", "Máy chủ gốc đang gặp sự cố cấu hình nội bộ và không thể xử lý yêu cầu.", "rgba(249, 115, 22, 0.15)", "#f97316", "rgba(249, 115, 22, 0.08)"),
+            503: ("Unavailable", "503 Service Unavailable", "Dịch Vụ Tạm Thời Không Khả Dụng", "Máy chủ đang quá tải hoặc bảo trì định kỳ.", "rgba(245, 158, 11, 0.15)", "#f59e0b", "rgba(245, 158, 11, 0.08)"),
+            504: ("Timeout", "504 Gateway Timeout", "Hết Thời Gian Chờ Cổng Kết Nối", "Proxy Server đã hết thời gian chờ phản hồi từ máy chủ gốc.", "rgba(139, 92, 246, 0.15)", "#a78bfa", "rgba(139, 92, 246, 0.08)"),
         }
-        icon, code_str, title, desc, border_color, text_color = error_info.get(
-            status_code, ("🔌", f"{status_code} Error", "Lỗi Kết Nối", "Gặp lỗi không xác định.", "rgba(239, 68, 68, 0.2)", "#ef4444")
+        badge_text, code_str, title, desc, border_color, text_color, bg_color = error_info.get(
+            status_code, ("Error", f"{status_code} Error", "Lỗi Kết Nối", "Gặp lỗi không xác định.", "rgba(239, 68, 68, 0.15)", "#ef4444", "rgba(239, 68, 68, 0.08)")
         )
         
         body_str = f"""<!DOCTYPE html>
 <html lang="vi"><head><meta charset="UTF-8"><title>{code_str}</title>
 <style>
-    body {{ font-family: 'Inter', sans-serif; background: #0f0f1a; color: #e0e0e0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
-    .box {{ text-align: center; padding: 50px; background: rgba(20, 20, 35, 0.85); border-radius: 24px; border: 1px solid {border_color}; max-width: 500px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }}
-    .icon {{ font-size: 64px; margin-bottom: 20px; }}
-    h1 {{ color: {text_color}; font-size: 26px; margin-bottom: 12px; font-weight: 700; }}
-    p {{ color: #9a9ab0; font-size: 14px; line-height: 1.6; }}
-    .url {{ font-family: monospace; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; color: #fff; word-break: break-all; }}
+    body {{ font-family: 'Inter', sans-serif; background: #0a0b10; color: #f3f4f6; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }}
+    .box {{ text-align: center; padding: 40px; background: #12131a; border-radius: 16px; border: 1px solid #222533; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }}
+    .badge {{ display: inline-block; padding: 5px 12px; background: {bg_color}; border: 1px solid {border_color}; border-radius: 6px; font-size: 11px; font-weight: 600; color: {text_color}; text-transform: uppercase; margin-bottom: 20px; }}
+    h1 {{ color: #f3f4f6; font-size: 20px; margin-bottom: 12px; font-weight: 700; letter-spacing: -0.02em; }}
+    p {{ color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0 0 16px; }}
+    .url {{ font-family: monospace; background: #1a1c26; padding: 6px 10px; border-radius: 6px; color: #f3f4f6; word-break: break-all; border: 1px solid #222533; display: inline-block; margin-top: 4px; }}
+    .footer {{ font-size: 11px; color: #6b7280; border-top: 1px solid rgba(255,255,255,0.02); padding-top: 16px; margin-top: 20px; }}
 </style></head>
 <body><div class="box">
-    <div class="icon">{icon}</div>
+    <div class="badge">{badge_text}</div>
     <h1>{title}</h1>
     <p>Proxy Server đã chặn kết nối tới: <br><span class="url">{url}</span></p>
     <p style="margin-top: 15px;">{desc}</p>
-    <p style="margin-top: 25px; font-size: 11px; color: #4a4a62">HTTP {code_str} · Giả lập lỗi bởi Proxy</p>
+    <div class="footer">HTTP {code_str} · Giả lập lỗi bởi Proxy</div>
 </div></body></html>"""
         body = body_str.encode("utf-8")
         header = (

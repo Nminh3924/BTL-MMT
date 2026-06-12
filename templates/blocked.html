@@ -3,154 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⛔ Truy Cập Bị Chặn — Proxy Server</title>
+    <title>Truy Cập Bị Chặn — Proxy Server</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        :root {
+            --bg-main: #0a0b10;
+            --bg-card: #12131a;
+            --border-color: #222533;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --color-error: #ef4444;
+            --color-error-bg: rgba(239, 68, 68, 0.08);
+            --color-error-border: rgba(239, 68, 68, 0.15);
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: #0f0f1a;
-            color: #e0e0e0;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-        }
-
-        /* Animated background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 30% 40%, rgba(255, 50, 80, 0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 60%, rgba(200, 30, 60, 0.06) 0%, transparent 50%);
-            animation: bgPulse 8s ease-in-out infinite;
-            z-index: 0;
-        }
-
-        @keyframes bgPulse {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(3deg); }
+            padding: 20px;
         }
 
         .container {
-            position: relative;
-            z-index: 1;
+            width: 100%;
+            max-width: 500px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 40px;
             text-align: center;
-            padding: 60px 50px;
-            max-width: 560px;
-            background: rgba(20, 20, 35, 0.85);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 60, 90, 0.15);
-            backdrop-filter: blur(20px);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5),
-                        0 0 80px rgba(255, 50, 80, 0.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
         .shield-icon {
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 28px;
-            background: linear-gradient(135deg, #ff3c5a, #c0192e);
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 24px;
+            background: var(--color-error-bg);
+            border: 1px solid var(--color-error-border);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 42px;
-            box-shadow: 0 8px 30px rgba(255, 60, 90, 0.3);
-            animation: iconPulse 2s ease-in-out infinite;
         }
 
-        @keyframes iconPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 8px 30px rgba(255, 60, 90, 0.3); }
-            50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(255, 60, 90, 0.45); }
+        .shield-icon svg {
+            width: 36px;
+            height: 36px;
+            color: var(--color-error);
         }
 
         h1 {
-            font-size: 26px;
-            font-weight: 800;
-            color: #ff4d6a;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
             margin-bottom: 12px;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.025em;
         }
 
         .subtitle {
-            font-size: 15px;
-            color: #9a9ab0;
-            margin-bottom: 32px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
             line-height: 1.6;
         }
 
         .domain-box {
-            background: rgba(255, 60, 90, 0.08);
-            border: 1px solid rgba(255, 60, 90, 0.2);
-            border-radius: 12px;
-            padding: 18px 24px;
-            margin-bottom: 28px;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            text-align: left;
         }
 
         .domain-label {
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #7a7a94;
-            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
         }
 
         .domain-name {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ff6b82;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
             word-break: break-all;
+            font-family: monospace;
         }
 
         .reason-badge {
             display: inline-block;
-            padding: 6px 16px;
-            background: rgba(255, 60, 90, 0.12);
-            border: 1px solid rgba(255, 60, 90, 0.25);
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 5px 12px;
+            background: var(--color-error-bg);
+            border: 1px solid var(--color-error-border);
+            border-radius: 6px;
+            font-size: 11px;
             font-weight: 600;
-            color: #ff8fa0;
-            letter-spacing: 1px;
+            color: var(--color-error);
             text-transform: uppercase;
-            margin-bottom: 28px;
+            letter-spacing: 0.02em;
+            margin-bottom: 24px;
         }
 
         .info-text {
-            font-size: 13px;
-            color: #6a6a82;
-            line-height: 1.7;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
         }
 
         .footer {
             margin-top: 32px;
             padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
             font-size: 11px;
-            color: #4a4a62;
+            color: var(--text-muted);
         }
 
-        .footer span {
-            color: #ff4d6a;
+        .footer-brand {
+            color: var(--text-secondary);
             font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="shield-icon">🛡️</div>
+        <div class="shield-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+        </div>
         <h1>Truy Cập Bị Chặn</h1>
         <p class="subtitle">
-            Trang web bạn đang cố truy cập đã bị chặn bởi<br>
-            hệ thống quản trị mạng Proxy Server.
+            Trang web này đã bị chặn bởi chính sách bảo mật<br>
+            của hệ thống quản trị Proxy Server.
         </p>
         <div class="domain-box">
             <div class="domain-label">Tên miền bị chặn</div>
@@ -158,11 +154,11 @@
         </div>
         <div class="reason-badge">{{REASON}}</div>
         <p class="info-text">
-            Nếu bạn cho rằng đây là nhầm lẫn, vui lòng liên hệ<br>
-            quản trị viên mạng để được hỗ trợ.
+            Nếu đây là một sự nhầm lẫn, vui lòng liên hệ quản trị viên mạng<br>
+            để yêu cầu thay đổi cấu hình bộ lọc.
         </p>
         <div class="footer">
-            Được bảo vệ bởi <span>Custom Proxy Server</span> · HTTP 403 Forbidden
+            Được bảo vệ bởi <span class="footer-brand">Custom Proxy Server</span> · HTTP 403 Forbidden
         </div>
     </div>
 </body>

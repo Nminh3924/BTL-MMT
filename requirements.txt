@@ -1,1 +1,3 @@
-flask>=2.0
+# Thư viện Web Framework cho giao diện Dashboard (dashboard.py)
+# Các chức năng của Proxy Server (proxy.py) được xây dựng hoàn toàn từ thư viện chuẩn (socket, select, threading,...) của Python.
+Flask>=2.0.0

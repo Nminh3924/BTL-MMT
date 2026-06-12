@@ -3,27 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proxy Dashboard</title>
+    <title>Proxy Server Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <header class="header">
         <div class="header-left">
-            <span class="logo">🌐</span>
-            <div><h1>Proxy Dashboard</h1><p class="header-subtitle">Real-time Monitoring</p></div>
+            <svg class="header-logo-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+            </svg>
+            <div>
+                <h1>Proxy Server</h1>
+                <p class="header-subtitle">Real-time Monitoring</p>
+            </div>
         </div>
         <div class="header-right">
-            <span class="status-dot"></span><span class="status-text">Live</span>
-            <button class="btn btn-secondary" onclick="clearCache()">🗑️ Xóa Cache</button>
-            <button class="btn btn-secondary" onclick="reloadFilter()">🔄 Reload Filter</button>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Live</span>
+            </div>
+            <button class="btn" onclick="clearCache()">Xóa Cache</button>
+            <button class="btn" onclick="reloadFilter()">Reload Filter</button>
         </div>
     </header>
 
     <section class="control-panel">
         <div class="control-card">
             <div class="control-header">
-                <span class="control-icon">⏳</span>
+                <svg class="control-header-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
                 <h3>Giới Hạn Băng Thông Download (Traffic Shaping)</h3>
             </div>
             <div class="control-body">
@@ -35,12 +45,14 @@
                     <option value="512000">500 KB/s (Nhanh)</option>
                     <option value="1048576">1 MB/s (Rất nhanh)</option>
                 </select>
-                <span class="control-desc">Giới hạn tốc độ tải xuống cho từng luồng kết nối client.</span>
+                <span class="control-desc">Giới hạn tốc độ tải xuống cho từng luồng kết nối client để tối ưu hóa tài nguyên mạng.</span>
             </div>
         </div>
         <div class="control-card">
             <div class="control-header">
-                <span class="control-icon">⚠️</span>
+                <svg class="control-header-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
                 <h3>Giả Lập Mã Lỗi Phản Hồi HTTP (HTTP Status Code Simulation)</h3>
             </div>
             <div class="control-body">
@@ -49,8 +61,8 @@
                     <span class="switch-slider"></span>
                     <span class="switch-text">Bật Giả Lập Lỗi HTTP</span>
                 </label>
-                <div style="margin-top: 6px; margin-bottom: 6px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; display: flex; flex-direction: column; gap: 6px;">
-                    <label class="input-label" style="font-size: 11px; color: #7a7a94; font-weight: 600; text-transform: uppercase;">Mã lỗi phản hồi cần giả lập</label>
+                <div style="margin-top: 6px; margin-bottom: 6px; border-top: 1px solid rgba(255,255,255,0.02); padding-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+                    <label class="input-label" style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Mã lỗi phản hồi</label>
                     <select id="simulateHttpErrorCodeSelect" onchange="updateSettings()" class="control-select">
                         <option value="403">HTTP 403 Forbidden</option>
                         <option value="404">HTTP 404 Not Found</option>
@@ -59,7 +71,7 @@
                         <option value="504">HTTP 504 Gateway Timeout</option>
                     </select>
                 </div>
-                <span class="control-desc">Khi bật, Proxy chặn mọi kết nối (cả HTTP/HTTPS) và trả về trực tiếp mã lỗi tương ứng. Với trang HTTP thường, Proxy sẽ phục vụ giao diện HTML lỗi tự thiết kế đẹp mắt.</span>
+                <span class="control-desc">Khi bật, Proxy sẽ trực tiếp phản hồi mã lỗi được chọn cho mọi request truy cập.</span>
             </div>
         </div>
     </section>
@@ -67,13 +79,15 @@
     <section class="control-panel">
         <div class="control-card">
             <div class="control-header">
-                <span class="control-icon">🔐</span>
+                <svg class="control-header-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
                 <h3>Xác Thực Proxy (Proxy Authentication — RFC 7235)</h3>
             </div>
             <div class="control-body">
                 <label class="switch-container">
                     <input type="checkbox" id="authEnabledCheckbox" onchange="updateSettings()">
-                    <span class="switch-slider switch-slider-blue"></span>
+                    <span class="switch-slider"></span>
                     <span class="switch-text">Bật Xác Thực Đăng Nhập</span>
                 </label>
                 <div class="auth-credentials" id="authCredentials">
@@ -83,125 +97,340 @@
                     </div>
                     <div class="input-group">
                         <label class="input-label">Password</label>
-                        <input type="password" id="authPassword" class="control-input" placeholder="Nhập mật khẩu mới..." onchange="updateSettings()">
+                        <input type="password" id="authPassword" class="control-input" placeholder="Mật khẩu mới..." onchange="updateSettings()">
                     </div>
                 </div>
-                <span class="control-desc">Khi bật, trình duyệt sẽ yêu cầu nhập username/password trước khi duyệt web qua proxy. Sử dụng HTTP Basic Authentication (Base64).</span>
+                <span class="control-desc">Yêu cầu người dùng nhập thông tin đăng nhập (Basic HTTP Auth) trước khi định tuyến truy cập qua proxy.</span>
             </div>
         </div>
         <div class="control-card">
             <div class="control-header">
-                <span class="control-icon">⏱️</span>
+                <svg class="control-header-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
                 <h3>Giới Hạn Tốc Độ Yêu Cầu (Rate Limiting — RFC 6585)</h3>
             </div>
             <div class="control-body">
                 <select id="rateLimitSelect" onchange="updateSettings()" class="control-select">
                     <option value="0">Tắt (Unlimited)</option>
-                    <option value="10">10 request / phút (Rất chặt)</option>
-                    <option value="30">30 request / phút (Chặt)</option>
+                    <option value="10">10 request / phút (Chặt)</option>
+                    <option value="30">30 request / phút</option>
                     <option value="60">60 request / phút (Trung bình)</option>
                     <option value="120">120 request / phút (Thoải mái)</option>
                 </select>
                 <div class="rate-limit-info">
-                    <span class="rl-stat">🛡️ Đã chặn: <strong id="rateLimitedCount">0</strong> request</span>
-                    <span class="rl-stat">👥 IP đang theo dõi: <strong id="trackedIPs">0</strong></span>
+                    <span class="rl-stat">Đã chặn: <strong id="rateLimitedCount">0</strong></span>
+                    <span class="rl-stat">IP theo dõi: <strong id="trackedIPs">0</strong></span>
                 </div>
-                <span class="control-desc">Giới hạn số lượng request mỗi IP trong 60 giây. Vượt ngưỡng sẽ trả về HTTP 429 Too Many Requests. Bảo vệ proxy khỏi tấn công DDoS.</span>
+                <span class="control-desc">Chống tấn công DDoS bằng cách giới hạn tần suất gửi yêu cầu từ mỗi địa chỉ IP nguồn.</span>
             </div>
         </div>
     </section>
 
     <section class="stats-grid">
-        <div class="stat-card"><div class="stat-icon si-purple">📡</div><div class="stat-info"><div class="stat-value" id="totalRequests">0</div><div class="stat-label">Tổng Request</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-green">💾</div><div class="stat-info"><div class="stat-value" id="cacheHitRate">0%</div><div class="stat-label">Cache Hit Rate</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-pink">📦</div><div class="stat-info"><div class="stat-value" id="bytesSaved">0 B</div><div class="stat-label">Bandwidth Tiết Kiệm</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-red">⛔</div><div class="stat-info"><div class="stat-value" id="totalBlocked">0</div><div class="stat-label">Đã Chặn</div></div></div>
-        <div class="stat-card"><div class="stat-icon si-orange">⏱️</div><div class="stat-info"><div class="stat-value" id="totalRateLimited">0</div><div class="stat-label">Rate Limited</div></div></div>
+        <div class="stat-card sc-total">
+            <span class="stat-label">Tổng Request</span>
+            <span class="stat-value" id="totalRequests">0</span>
+        </div>
+        <div class="stat-card sc-hit">
+            <span class="stat-label">Cache Hit Rate</span>
+            <span class="stat-value" id="cacheHitRate">0%</span>
+        </div>
+        <div class="stat-card sc-saved">
+            <span class="stat-label">Băng Thông Tiết Kiệm</span>
+            <span class="stat-value" id="bytesSaved">0 B</span>
+        </div>
+        <div class="stat-card sc-blocked">
+            <span class="stat-label">Tên Miền Đã Chặn</span>
+            <span class="stat-value" id="totalBlocked">0</span>
+        </div>
+        <div class="stat-card sc-limited">
+            <span class="stat-label">Số Lượt Vượt Ngưỡng</span>
+            <span class="stat-value" id="totalRateLimited">0</span>
+        </div>
     </section>
 
     <section class="charts-row">
-        <div class="card chart-card"><div class="card-header"><h2>📊 Tỷ Lệ Cache</h2></div><div class="chart-container"><canvas id="cacheChart"></canvas></div>
-            <div class="chart-legend"><div class="legend-item"><span class="legend-dot lg-green"></span>Hit: <strong id="cacheHitsCount">0</strong></div><div class="legend-item"><span class="legend-dot lg-red"></span>Miss: <strong id="cacheMissesCount">0</strong></div></div>
+        <div class="card chart-card">
+            <div class="card-header">
+                <h2>Tỷ Lệ Cache Hit</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="cacheChart"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item"><span class="legend-dot lg-green"></span>Hit: <strong id="cacheHitsCount">0</strong></div>
+                <div class="legend-item"><span class="legend-dot lg-red"></span>Miss: <strong id="cacheMissesCount">0</strong></div>
+            </div>
         </div>
-        <div class="card"><div class="card-header"><h2>🏆 Top Domains</h2></div><div class="top-domains-list" id="topDomains"><div class="empty-state">Chưa có dữ liệu</div></div></div>
-        <div class="card chart-card"><div class="card-header"><h2>📋 HTTP Methods</h2></div><div class="chart-container"><canvas id="methodsChart"></canvas></div></div>
+        <div class="card">
+            <div class="card-header">
+                <h2>Top Domains</h2>
+            </div>
+            <div class="top-domains-list" id="topDomains">
+                <div class="empty-state">Không có dữ liệu</div>
+            </div>
+        </div>
+        <div class="card chart-card">
+            <div class="card-header">
+                <h2>HTTP Methods</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="methodsChart"></canvas>
+            </div>
+        </div>
     </section>
 
     <section class="card log-section">
-        <div class="card-header"><h2>📜 Lịch Sử Request</h2><span class="badge" id="logCount">0</span></div>
+        <div class="card-header">
+            <h2>Lịch Sử Request</h2>
+            <span class="badge" id="logCount">0 entries</span>
+        </div>
         <div class="table-container">
-            <table class="log-table"><thead><tr><th>Thời gian</th><th>Method</th><th>URL</th><th>Status</th><th>Cache</th><th>Size</th><th>Interface</th><th>Time</th></tr></thead>
-                <tbody id="logTableBody"><tr><td colspan="8" class="empty-state">Chưa có request</td></tr></tbody>
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Method</th>
+                        <th>URL</th>
+                        <th>Status</th>
+                        <th>Cache</th>
+                        <th>Kích thước</th>
+                        <th>Interface</th>
+                        <th>Thời gian chạy</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody">
+                    <tr>
+                        <td colspan="8" class="empty-state">Chưa ghi nhận yêu cầu nào</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </section>
-    <footer class="footer">Custom Web Proxy Server — Đồ Án Mạng Máy Tính · Auto-refresh 3s</footer>
+
+    <footer class="footer">
+        Custom Web Proxy Server — Mạng Máy Tính · Auto-refresh 3s
+    </footer>
+
 <script>
 const cacheChart = new Chart(document.getElementById('cacheChart'), {
-    type:'doughnut', data:{labels:['Hit','Miss'],datasets:[{data:[0,0],backgroundColor:['#38ef7d','#ff416c'],borderWidth:0,hoverOffset:8}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}}
+    type: 'doughnut',
+    data: {
+        labels: ['Hit', 'Miss'],
+        datasets: [{
+            data: [0, 0],
+            backgroundColor: ['#10b981', '#ef4444'],
+            borderWidth: 0,
+            hoverOffset: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+            legend: { display: false }
+        }
+    }
 });
+
 const methodsChart = new Chart(document.getElementById('methodsChart'), {
-    type:'bar', data:{labels:[],datasets:[{data:[],backgroundColor:['rgba(102,126,234,0.7)','rgba(17,153,142,0.7)','rgba(255,65,108,0.7)','rgba(238,156,167,0.7)'],borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{color:'#8888aa'},grid:{color:'rgba(255,255,255,0.04)'}},x:{ticks:{color:'#8888aa'},grid:{display:false}}}}
+    type: 'bar',
+    data: {
+        labels: [],
+        datasets: [{
+            data: [],
+            backgroundColor: [
+                'rgba(99, 102, 241, 0.75)',
+                'rgba(16, 185, 129, 0.75)',
+                'rgba(245, 158, 11, 0.75)',
+                'rgba(59, 130, 246, 0.75)'
+            ],
+            borderWidth: 0,
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: '#9ca3af', font: { size: 10 } },
+                grid: { color: 'rgba(255, 255, 255, 0.02)' }
+            },
+            x: {
+                ticks: { color: '#9ca3af', font: { size: 10 } },
+                grid: { display: false }
+            }
+        }
+    }
 });
-function fmtB(b){if(!b)return'0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return(b/Math.pow(k,i)).toFixed(1)+' '+s[i];}
-function stsCls(c){if(c>=200&&c<300)return'status-2xx';if(c>=300&&c<400)return'status-3xx';if(c>=400&&c<500)return'status-4xx';return'status-5xx';}
-function cacheCls(s){return{HIT:'cache-hit',MISS:'cache-miss',BLOCKED:'cache-blocked',TUNNEL:'cache-tunnel',RATE_LIMITED:'cache-ratelimited',AUTH_REQUIRED:'cache-auth'}[s]||'cache-other';}
-function ifaceCls(i){return i === 'Primary Connection' || i === 'Default' ? 'iface-primary' : (i === 'Cache' ? 'iface-cache' : 'iface-backup');}
-async function fetchStats(){try{const r=await fetch('/api/stats'),d=await r.json();
-    document.getElementById('totalRequests').textContent=d.total_requests||0;
-    document.getElementById('cacheHitRate').textContent=(d.cache_hit_rate||0)+'%';
-    document.getElementById('bytesSaved').textContent=d.bytes_saved_formatted||'0 B';
-    document.getElementById('totalBlocked').textContent=d.total_blocked||0;
-    cacheChart.data.datasets[0].data=[d.cache_hits||0,d.cache_misses||0];cacheChart.update('none');
-    document.getElementById('cacheHitsCount').textContent=d.cache_hits||0;
-    document.getElementById('cacheMissesCount').textContent=d.cache_misses||0;
-    const m=d.methods||{};methodsChart.data.labels=Object.keys(m);methodsChart.data.datasets[0].data=Object.values(m);methodsChart.update('none');
-    const td=d.top_domains||[],c=document.getElementById('topDomains');
-    if(!td.length){c.innerHTML='<div class="empty-state">Chưa có</div>';}
-    else{const mx=td[0][1];c.innerHTML=td.map(([dm,ct],i)=>`<div class="domain-row"><span class="domain-rank">#${i+1}</span><span class="domain-name-d">${dm}</span><div class="domain-bar-bg"><div class="domain-bar" style="width:${mx?ct/mx*100:0}%"></div></div><span class="domain-count">${ct}</span></div>`).join('');}
-    const rl=d.rate_limit_stats||{};
-    document.getElementById('rateLimitedCount').textContent=rl.total_rate_limited||0;
-    document.getElementById('trackedIPs').textContent=rl.active_tracked_ips||0;
-    document.getElementById('totalRateLimited').textContent=rl.total_rate_limited||0;
-}catch(e){}}
-async function fetchLogs(){try{const r=await fetch('/api/logs'),l=await r.json();
-    document.getElementById('logCount').textContent=l.length+' entries';
-    const tb=document.getElementById('logTableBody');
-    if(!l.length){tb.innerHTML='<tr><td colspan="8" class="empty-state">Chưa có</td></tr>';return;}
-    tb.innerHTML=l.slice(0,50).map(g=>{const u=g.url&&g.url.length>55?g.url.substring(0,52)+'...':g.url||'';
-    const ifaceLabel = g.outgoing_interface || 'Default';
-    return`<tr><td class="col-time">${g.datetime||''}</td><td><span class="method-badge method-${(g.method||'').toLowerCase()}">${g.method||''}</span></td><td class="col-url" title="${g.url||''}">${u}</td><td><span class="status-badge ${stsCls(g.status_code)}">${g.status_code||''}</span></td><td><span class="cache-badge ${cacheCls(g.cache_status)}">${g.cache_status||''}</span></td><td class="col-size">${fmtB(g.response_size)}</td><td><span class="interface-badge ${ifaceCls(ifaceLabel)}">${ifaceLabel}</span></td><td class="col-time">${(g.response_time_ms||0).toFixed(0)}ms</td></tr>`;}).join('');
-}catch(e){}}
-async function fetchSettings(){try{const r=await fetch('/api/settings'),s=await r.json();
-    document.getElementById('bandwidthLimitSelect').value=s.bandwidth_limit||0;
-    document.getElementById('simulateHttpErrorCheckbox').checked=s.simulate_http_error||false;
-    document.getElementById('simulateHttpErrorCodeSelect').value=s.simulate_http_error_code||503;
-    document.getElementById('authEnabledCheckbox').checked=s.auth_enabled||false;
-    document.getElementById('authUsername').value=s.auth_username||'admin';
-    document.getElementById('rateLimitSelect').value=s.rate_limit_max_requests||0;
-    document.getElementById('authCredentials').style.display=s.auth_enabled?'flex':'none';
-}catch(e){}}
-async function updateSettings(){
-    const limit=parseInt(document.getElementById('bandwidthLimitSelect').value);
-    const errEnabled=document.getElementById('simulateHttpErrorCheckbox').checked;
-    const errCode=parseInt(document.getElementById('simulateHttpErrorCodeSelect').value);
-    const authEnabled=document.getElementById('authEnabledCheckbox').checked;
-    const authUsername=document.getElementById('authUsername').value;
-    const authPassword=document.getElementById('authPassword').value;
-    const rateLimit=parseInt(document.getElementById('rateLimitSelect').value);
-    document.getElementById('authCredentials').style.display=authEnabled?'flex':'none';
-    const body={bandwidth_limit:limit,simulate_http_error:errEnabled,simulate_http_error_code:errCode,auth_enabled:authEnabled,auth_username:authUsername,rate_limit_max_requests:rateLimit};
-    if(authPassword) body.auth_password=authPassword;
-    try{await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(e){}
+
+function fmtB(b) {
+    if (!b) return '0 B';
+    const k = 1024, s = ['B', 'KB', 'MB', 'GB'], i = Math.floor(Math.log(b) / Math.log(k));
+    return (b / Math.pow(k, i)).toFixed(1) + ' ' + s[i];
 }
-async function clearCache(){if(!confirm('Xóa toàn bộ cache?'))return;await fetch('/api/cache/clear',{method:'POST'});fetchStats();}
-async function reloadFilter(){await fetch('/api/filter/reload',{method:'POST'});alert('Đã reload!');}
-function refresh(){fetchStats();fetchLogs();}
+
+function stsCls(c) {
+    if (c >= 200 && c < 300) return 'status-2xx';
+    if (c >= 300 && c < 400) return 'status-3xx';
+    if (c >= 400 && c < 500) return 'status-4xx';
+    return 'status-5xx';
+}
+
+function cacheCls(s) {
+    return {
+        HIT: 'cache-hit',
+        MISS: 'cache-miss',
+        BLOCKED: 'cache-blocked',
+        TUNNEL: 'cache-tunnel',
+        RATE_LIMITED: 'cache-ratelimited',
+        AUTH_REQUIRED: 'cache-auth'
+    }[s] || 'cache-other';
+}
+
+function ifaceCls(i) {
+    return i === 'Primary Connection' || i === 'Default' ? 'iface-primary' : (i === 'Cache' ? 'iface-cache' : 'iface-backup');
+}
+
+async function fetchStats() {
+    try {
+        const r = await fetch('/api/stats'), d = await r.json();
+        document.getElementById('totalRequests').textContent = d.total_requests || 0;
+        document.getElementById('cacheHitRate').textContent = (d.cache_hit_rate || 0) + '%';
+        document.getElementById('bytesSaved').textContent = d.bytes_saved_formatted || '0 B';
+        document.getElementById('totalBlocked').textContent = d.total_blocked || 0;
+        
+        cacheChart.data.datasets[0].data = [d.cache_hits || 0, d.cache_misses || 0];
+        cacheChart.update('none');
+        
+        document.getElementById('cacheHitsCount').textContent = d.cache_hits || 0;
+        document.getElementById('cacheMissesCount').textContent = d.cache_misses || 0;
+        
+        const m = d.methods || {};
+        methodsChart.data.labels = Object.keys(m);
+        methodsChart.data.datasets[0].data = Object.values(m);
+        methodsChart.update('none');
+        
+        const td = d.top_domains || [], c = document.getElementById('topDomains');
+        if (!td.length) {
+            c.innerHTML = '<div class="empty-state">Không có dữ liệu</div>';
+        } else {
+            const mx = td[0][1];
+            c.innerHTML = td.map(([dm, ct], i) => `
+                <div class="domain-row">
+                    <span class="domain-rank">#${i+1}</span>
+                    <span class="domain-name-d">${dm}</span>
+                    <div class="domain-bar-bg">
+                        <div class="domain-bar" style="width: ${mx ? (ct / mx * 100) : 0}%"></div>
+                    </div>
+                    <span class="domain-count">${ct}</span>
+                </div>
+            `).join('');
+        }
+        
+        const rl = d.rate_limit_stats || {};
+        document.getElementById('rateLimitedCount').textContent = rl.total_rate_limited || 0;
+        document.getElementById('trackedIPs').textContent = rl.active_tracked_ips || 0;
+        document.getElementById('totalRateLimited').textContent = rl.total_rate_limited || 0;
+    } catch (e) {}
+}
+
+async function fetchLogs() {
+    try {
+        const r = await fetch('/api/logs'), l = await r.json();
+        document.getElementById('logCount').textContent = l.length + ' entries';
+        const tb = document.getElementById('logTableBody');
+        if (!l.length) {
+            tb.innerHTML = '<tr><td colspan="8" class="empty-state">Chưa ghi nhận yêu cầu nào</td></tr>';
+            return;
+        }
+        tb.innerHTML = l.slice(0, 50).map(g => {
+            const u = g.url && g.url.length > 55 ? g.url.substring(0, 52) + '...' : g.url || '';
+            const ifaceLabel = g.outgoing_interface || 'Default';
+            return `
+                <tr>
+                    <td class="col-time">${g.datetime || ''}</td>
+                    <td><span class="method-badge method-${(g.method || '').toLowerCase()}">${g.method || ''}</span></td>
+                    <td class="col-url" title="${g.url || ''}">${u}</td>
+                    <td><span class="status-badge ${stsCls(g.status_code)}">${g.status_code || ''}</span></td>
+                    <td><span class="cache-badge ${cacheCls(g.cache_status)}">${g.cache_status || ''}</span></td>
+                    <td class="col-size">${fmtB(g.response_size)}</td>
+                    <td><span class="interface-badge ${ifaceCls(ifaceLabel)}">${ifaceLabel}</span></td>
+                    <td class="col-time">${(g.response_time_ms || 0).toFixed(0)}ms</td>
+                </tr>
+            `;
+        }).join('');
+    } catch (e) {}
+}
+
+async function fetchSettings() {
+    try {
+        const r = await fetch('/api/settings'), s = await r.json();
+        document.getElementById('bandwidthLimitSelect').value = s.bandwidth_limit || 0;
+        document.getElementById('simulateHttpErrorCheckbox').checked = s.simulate_http_error || false;
+        document.getElementById('simulateHttpErrorCodeSelect').value = s.simulate_http_error_code || 503;
+        document.getElementById('authEnabledCheckbox').checked = s.auth_enabled || false;
+        document.getElementById('authUsername').value = s.auth_username || 'admin';
+        document.getElementById('rateLimitSelect').value = s.rate_limit_max_requests || 0;
+        document.getElementById('authCredentials').style.display = s.auth_enabled ? 'flex' : 'none';
+    } catch (e) {}
+}
+
+async function updateSettings() {
+    const limit = parseInt(document.getElementById('bandwidthLimitSelect').value);
+    const errEnabled = document.getElementById('simulateHttpErrorCheckbox').checked;
+    const errCode = parseInt(document.getElementById('simulateHttpErrorCodeSelect').value);
+    const authEnabled = document.getElementById('authEnabledCheckbox').checked;
+    const authUsername = document.getElementById('authUsername').value;
+    const authPassword = document.getElementById('authPassword').value;
+    const rateLimit = parseInt(document.getElementById('rateLimitSelect').value);
+    
+    document.getElementById('authCredentials').style.display = authEnabled ? 'flex' : 'none';
+    
+    const body = {
+        bandwidth_limit: limit,
+        simulate_http_error: errEnabled,
+        simulate_http_error_code: errCode,
+        auth_enabled: authEnabled,
+        auth_username: authUsername,
+        rate_limit_max_requests: rateLimit
+    };
+    if (authPassword) body.auth_password = authPassword;
+    
+    try {
+        await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+    } catch (e) {}
+}
+
+async function clearCache() {
+    if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ cache không?')) return;
+    await fetch('/api/cache/clear', { method: 'POST' });
+    fetchStats();
+}
+
+async function reloadFilter() {
+    await fetch('/api/filter/reload', { method: 'POST' });
+}
+
+function refresh() {
+    fetchStats();
+    fetchLogs();
+}
+
 fetchSettings();
 refresh();
-setInterval(refresh,3000);
+setInterval(refresh, 3000);
 </script>
 </body>
 </html>

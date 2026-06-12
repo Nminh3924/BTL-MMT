@@ -1,0 +1,21 @@
+{
+  "url": "http://astoundinginnermajesticpoem.neverssl.com/favicon.ico",
+  "hash": "7608990d386f2e83171a6946cb486e4e",
+  "created_at": 1781291610.8355958,
+  "last_accessed": 1781292246.4543083,
+  "ttl": 3600,
+  "size": 406,
+  "headers": {
+    "date": "Fri, 12 Jun 2026 19:13:30 GMT",
+    "server": "Apache/2.4.66 ()",
+    "upgrade": "h2,h2c",
+    "connection": "Upgrade, close",
+    "last-modified": "Wed, 29 Jun 2022 00:26:43 GMT",
+    "etag": "\"7c-5e28b351ffe27\"",
+    "accept-ranges": "bytes",
+    "content-length": "124",
+    "content-type": "image/vnd.microsoft.icon"
+  },
+  "last_modified": "Wed, 29 Jun 2022 00:26:43 GMT",
+  "etag": "\"7c-5e28b351ffe27\""
+}
